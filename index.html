@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BORSA — Mercato Condiviso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0d10; --panel:#12161b; --panel2:#161b21; --border:#242a32;
+    --text:#dbe2e9; --muted:#7c8794; --amber:#e8a33d; --amber-dim:#8a6528;
+    --green:#3ddc84; --red:#ff5c5c; --blue:#4f8cff;
+    --mono:'IBM Plex Mono', monospace; --disp:'Space Grotesk', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;}
+  h1,h2,h3{font-family:var(--disp);}
+  button{cursor:pointer;border:none;border-radius:6px;font-family:var(--mono);font-weight:600;font-size:12.5px;padding:9px 14px;transition:opacity .15s;}
+  button:hover{opacity:.85;} button:active{transform:translateY(1px);}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-amber{background:var(--amber);color:#141414;}
+  .btn-green{background:var(--green);color:#08130d;}
+  .btn-red{background:var(--red);color:#1a0505;}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);}
+  .btn-blue{background:var(--blue);color:#08101f;}
+  input,select{width:100%;background:#0e1116;border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:6px;font-family:var(--mono);font-size:13px;}
+  input:focus,select:focus{outline:none;border-color:var(--amber-dim);}
+  label{display:block;font-size:11px;color:var(--muted);margin:9px 0 4px;text-transform:uppercase;letter-spacing:.5px;}
+  .hidden{display:none !important;}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;}
+  .panel h2{font-size:14px;text-transform:uppercase;letter-spacing:1px;color:var(--amber);margin:0 0 12px;display:flex;align-items:center;gap:8px;}
+  .panel h2::before{content:"";width:6px;height:6px;background:var(--amber);border-radius:50%;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .muted{color:var(--muted);}
+  .up{color:var(--green);} .down{color:var(--red);} .flat{color:var(--muted);}
+  a.link{color:var(--amber);cursor:pointer;text-decoration:underline;font-size:12px;}
+
+  /* login */
+  #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .loginBox{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:26px;}
+  .loginBox h1{font-size:26px;margin:0 0 4px;}
+  .loginBox h1 span{color:var(--amber);}
+  .loginBox .tag{color:var(--muted);font-size:12px;margin-bottom:18px;}
+  .tabbar{display:flex;gap:6px;margin-bottom:14px;}
+  .tabbar button{flex:1;background:var(--panel2);color:var(--muted);}
+  .tabbar button.on{background:var(--amber);color:#141414;}
+  #loginMsg{font-size:12px;margin-top:10px;min-height:16px;}
+  #loginMsg.err{color:var(--red);} #loginMsg.ok{color:var(--green);}
+
+  /* app shell */
+  #app{display:none;}
+  header.top{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;background:#0d1013;}
+  header.top .brand{font-family:var(--disp);font-size:18px;}
+  header.top .brand span{color:var(--amber);}
+  header.top .who{font-size:12px;color:var(--muted);}
+  header.top .who b{color:var(--amber);}
+  nav.tabs{display:flex;gap:4px;padding:10px 20px;background:#0d1013;border-bottom:1px solid var(--border);overflow-x:auto;}
+  nav.tabs button{background:transparent;color:var(--muted);white-space:nowrap;}
+  nav.tabs button.on{background:var(--panel2);color:var(--amber);}
+  main{max-width:1100px;margin:0 auto;padding:18px 16px 60px;}
+
+  table{border-collapse:collapse;width:100%;font-size:12.5px;}
+  th{text-align:left;color:var(--muted);font-weight:500;padding:8px 8px;border-bottom:1px solid var(--border);text-transform:uppercase;font-size:10.5px;letter-spacing:.5px;}
+  td{padding:8px 8px;border-bottom:1px solid var(--border);}
+  tr.clickable{cursor:pointer;} tr.clickable:hover{background:var(--panel2);}
+
+  .co-list .co-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:6px;border:1px solid var(--border);}
+  .co-item:hover{border-color:var(--amber-dim);}
+  .co-item.active{background:var(--panel2);border-color:var(--amber);}
+  .co-item .nome{font-weight:600;}
+  .co-item .settore{font-size:10.5px;color:var(--muted);text-transform:uppercase;}
+
+  canvas{width:100%;display:block;background:#0e1116;border:1px solid var(--border);border-radius:8px;}
+  .quote-price{font-size:30px;font-weight:700;font-family:var(--disp);}
+  .quote-change{font-size:13px;margin-left:8px;}
+
+  .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;background:var(--panel2);color:var(--muted);}
+  .toast{position:fixed;bottom:18px;right:18px;background:var(--panel);border:1px solid var(--amber-dim);padding:10px 16px;border-radius:8px;font-size:12.5px;opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;z-index:80;max-width:280px;}
+  .toast.show{opacity:1;transform:translateY(0);}
+  .rankNum{color:var(--amber);font-weight:700;width:22px;display:inline-block;}
+  .modalBg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:60;padding:16px;}
+  .modalBox{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto;}
+  .modalBox h3{margin-top:0;color:var(--amber);}
+  .closeX{float:right;cursor:pointer;color:var(--muted);}
+  .feed{max-height:220px;overflow-y:auto;font-size:11.5px;line-height:1.7;}
+  .feed div{border-bottom:1px dashed var(--border);padding:5px 0;color:var(--muted);}
+  .feed div b{color:var(--text);}
+  .setupWarning{background:#2a1c0c;border:1px solid var(--amber-dim);color:var(--amber);padding:14px;border-radius:8px;font-size:12px;line-height:1.6;margin:16px;}
+</style>
+</head>
+<body>
+
+<!-- ================= AVVISO CONFIGURAZIONE MANCANTE ================= -->
+<div id="setupWarning" class="setupWarning hidden">
+  ⚠️ <b>Configurazione Firebase mancante.</b> Apri questo file con un editor di testo, cerca il blocco
+  <code>firebaseConfig</code> vicino all'inizio dello script e incolla i dati del tuo progetto Firebase.
+  Le istruzioni complete sono nel manuale PDF allegato. Inoltre questa pagina deve essere aperta da un hosting
+  con indirizzo <code>https://</code> (non funziona aprendo il file direttamente dal computer).
+</div>
+
+<!-- ================= LOGIN ================= -->
+<div id="loginScreen">
+  <div class="loginBox">
+    <h1>BORSA<span>SIM</span></h1>
+    <div class="tag">Mercato condiviso in tempo reale</div>
+    <div class="tabbar">
+      <button class="on" id="tabLoginBtn" onclick="mostraTab('login')">Accedi</button>
+      <button id="tabRegBtn" onclick="mostraTab('registrati')">Registrati</button>
+      <button id="tabAdminBtn" onclick="mostraTab('admin')">Admin</button>
+    </div>
+
+    <div id="formLogin">
+      <label>Nome investitore</label>
+      <input type="text" id="loginUser" autocomplete="username">
+      <label>Password</label>
+      <input type="password" id="loginPass" autocomplete="current-password">
+      <button class="btn-amber" style="width:100%;margin-top:16px;" onclick="eseguiLogin()">Accedi</button>
+    </div>
+
+    <div id="formReg" class="hidden">
+      <label>Scegli un nome investitore</label>
+      <input type="text" id="regUser">
+      <label>Scegli una password</label>
+      <input type="password" id="regPass">
+      <label>Ripeti password</label>
+      <input type="password" id="regPass2">
+      <button class="btn-green" style="width:100%;margin-top:16px;" onclick="eseguiRegistrazione()">Crea account</button>
+    </div>
+
+    <div id="formAdmin" class="hidden">
+      <label>Password amministratore</label>
+      <input type="password" id="adminPass">
+      <button class="btn-blue" style="width:100%;margin-top:16px;" onclick="eseguiLoginAdmin()">Entra come admin</button>
+    </div>
+
+    <div id="loginMsg"></div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app">
+  <header class="top">
+    <div class="brand">BORSA<span>SIM</span></div>
+    <div class="who">Connesso come <b id="whoName">—</b> <span id="whoBadge" class="badge hidden">ADMIN</span>
+      &nbsp;·&nbsp; <a class="link" onclick="logout()">esci</a>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="on" data-tab="mercato" onclick="cambiaTab('mercato')">Mercato</button>
+    <button data-tab="conto" onclick="cambiaTab('conto')">Il mio conto</button>
+    <button data-tab="classifica" onclick="cambiaTab('classifica')">Classifica</button>
+    <button data-tab="admin" id="navAdmin" class="hidden" onclick="cambiaTab('admin')">Admin</button>
+  </nav>
+
+  <main>
+    <!-- ---------- MERCATO ---------- -->
+    <div id="tab-mercato" class="tabpane">
+      <div class="row2" style="align-items:start;gap:16px;grid-template-columns:280px 1fr;">
+        <div class="panel co-list">
+          <h2>Aziende quotate</h2>
+          <div id="listaAziende"><span class="muted">Nessuna azienda ancora.</span></div>
+        </div>
+        <div>
+          <div class="panel">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+              <div>
+                <div class="muted" style="font-size:11px;text-transform:uppercase;" id="qSector">—</div>
+                <div style="font-size:19px;font-weight:600;" id="qName">Seleziona un'azienda</div>
+              </div>
+              <div><span class="quote-price" id="qPrice">—</span><span class="quote-change" id="qChange"></span></div>
+            </div>
+            <canvas id="chart" width="800" height="260" style="margin-top:10px;"></canvas>
+          </div>
+          <div class="panel" id="ordinePanel">
+            <h2>Ordine</h2>
+            <div class="row2">
+              <div><label>Quantità azioni</label><input type="number" id="inQty" value="1" min="1" step="1" oninput="aggiornaStima()"></div>
+              <div><label>Costo stimato</label><input type="text" id="stimaCosto" disabled value="—"></div>
+            </div>
+            <div class="row2" style="margin-top:10px;">
+              <button class="btn-green" onclick="ordine('buy')">ACQUISTA</button>
+              <button class="btn-red" onclick="ordine('sell')">VENDI</button>
+            </div>
+          </div>
+          <div class="panel">
+            <h2>Registro eventi &amp; scambi</h2>
+            <div class="feed" id="feedGlobale"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- IL MIO CONTO ---------- -->
+    <div id="tab-conto" class="tabpane hidden">
+      <div class="panel">
+        <h2>Riepilogo</h2>
+        <table>
+          <tr><td>Liquidità</td><td id="ctSaldo" style="text-align:right;font-weight:600;">—</td></tr>
+          <tr><td>Valore posizioni</td><td id="ctValore" style="text-align:right;font-weight:600;">—</td></tr>
+          <tr><td>Patrimonio totale</td><td id="ctTotale" style="text-align:right;font-weight:600;color:var(--amber);">—</td></tr>
+        </table>
+      </div>
+      <div class="panel">
+        <h2>Posizioni possedute</h2>
+        <table><thead><tr><th>Azienda</th><th>Quantità</th><th>Valore</th></tr></thead>
+        <tbody id="ctPosizioni"></tbody></table>
+      </div>
+      <div class="panel">
+        <h2>Le mie operazioni recenti</h2>
+        <div class="feed" id="ctStorico"></div>
+      </div>
+    </div>
+
+    <!-- ---------- CLASSIFICA ---------- -->
+    <div id="tab-classifica" class="tabpane hidden">
+      <div class="panel">
+        <h2>Classifica investitori per patrimonio</h2>
+        <table><thead><tr><th></th><th>Investitore</th><th style="text-align:right;">Patrimonio</th></tr></thead>
+        <tbody id="classificaBody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ---------- ADMIN ---------- -->
+    <div id="tab-admin" class="tabpane hidden">
+      <div class="panel">
+        <h2>Crea nuova azienda</h2>
+        <div class="row2">
+          <div><label>Nome</label><input type="text" id="acNome"></div>
+          <div><label>Settore</label><input type="text" id="acSettore"></div>
+        </div>
+        <div class="row2">
+          <div><label>Prezzo iniziale</label><input type="number" id="acPrezzo" value="10" step="0.1"></div>
+          <div><label>Azioni totali emesse</label><input type="number" id="acShare" value="1000" step="1"></div>
+        </div>
+        <div class="row2">
+          <div><label>Liquidità (impatto ordini)</label><input type="number" id="acLiquidita" value="50000" step="100"></div>
+          <div><label>Tendenza giornaliera %</label><input type="number" id="acTendenza" value="0" step="0.01"></div>
+        </div>
+        <button class="btn-amber" style="margin-top:12px;" onclick="adminCreaAzienda()">+ Quota azienda</button>
+      </div>
+
+      <div class="panel">
+        <h2>Applica evento a un'azienda</h2>
+        <label>Azienda</label><select id="evAzienda"></select>
+        <div class="row2">
+          <div><label>Tipo variazione</label>
+            <select id="evTipo"><option value="pct">Percentuale (%)</option><option value="abs">Prezzo assoluto (€)</option></select>
+          </div>
+          <div><label>Valore</label><input type="number" id="evValore" step="0.01" placeholder="es. 15 oppure -8"></div>
+        </div>
+        <label>Motivo (obbligatorio, resta nello storico)</label>
+        <input type="text" id="evMotivo" placeholder="es. Completata prima tratta autostradale">
+        <button class="btn-blue" style="margin-top:12px;" onclick="adminApplicaEvento()">Applica evento</button>
+      </div>
+
+      <div class="panel">
+        <h2>Distribuisci dividendo</h2>
+        <label>Azienda</label><select id="dvAzienda"></select>
+        <label>Utile totale da distribuire</label><input type="number" id="dvImporto" step="0.01">
+        <button class="btn-green" style="margin-top:12px;" onclick="adminDistribuisciDividendo()">Distribuisci in base alle quote</button>
+      </div>
+
+      <div class="panel">
+        <h2>Gestisci investitori</h2>
+        <div id="adminInvestitori"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Impostazioni globali</h2>
+        <div class="row2">
+          <div><label>Nome valuta</label><input type="text" id="cfgValutaNome"></div>
+          <div><label>Simbolo valuta</label><input type="text" id="cfgValutaSimbolo"></div>
+        </div>
+        <div class="row2">
+          <div><label>Saldo iniziale nuovi investitori</label><input type="number" id="cfgSaldoIniziale" step="1"></div>
+          <div><label>Fattore impatto ordini (0-1)</label><input type="number" id="cfgImpact" step="0.05" min="0" max="1"></div>
+        </div>
+        <button class="btn-amber" style="margin-top:12px;" onclick="adminSalvaConfig()">Salva impostazioni</button>
+        <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;">
+          <label>Nuova password amministratore</label>
+          <input type="password" id="cfgNuovaAdminPass" placeholder="lascia vuoto per non cambiarla">
+          <button class="btn-ghost" style="margin-top:10px;" onclick="adminCambiaPassword()">Aggiorna password admin</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="modalRoot"></div>
+
+<script type="module">
+/* ======================================================================
+   BORSA SIM — Mercato condiviso
+   Vedi il manuale PDF per la spiegazione completa di formule e setup.
+   ====================================================================== */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getDatabase, ref, get, set, update, push, onValue, runTransaction, child
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+/* =====================================================================
+   1) INCOLLA QUI LA CONFIGURAZIONE DEL TUO PROGETTO FIREBASE
+   (la trovi nella console Firebase → Impostazioni progetto → Le tue app)
+   Il manuale PDF spiega passo passo come ottenerla.
+   ===================================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAbk2PVsIkIB6dVg7Vj_Wz6TmLu5gYFs_o",
+  authDomain: "borsa-new-trino.firebaseapp.com",
+  databaseURL: "https://borsa-new-trino-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "borsa-new-trino",
+  storageBucket: "borsa-new-trino.firebasestorage.app",
+  messagingSenderId: "981447245963",
+  appId: "1:981447245963:web:4b710e4fc0259bdaef948e"
+};
+/* ===================================================================== */
+
+let db = null;
+let firebaseOk = false;
+try{
+  if(firebaseConfig.apiKey && firebaseConfig.apiKey !== "INCOLLA_QUI"){
+    const fbApp = initializeApp(firebaseConfig);
+    db = getDatabase(fbApp);
+    firebaseOk = true;
+  }
+}catch(e){ console.error(e); }
+if(!firebaseOk){
+  document.getElementById('setupWarning').classList.remove('hidden');
+}
+
+/* ---------------- stato locale ---------------- */
+let CONFIG = { valutaNome:"Diamanti", valutaSimbolo:"💎", saldoIniziale:0, impactFactor:0.5 };
+let AZIENDE = {};       // id -> oggetto azienda
+let INVESTITORI = {};   // username -> {saldo, portafoglio}
+let OPERAZIONI = [];    // log globale, array ordinato
+let sessione = null;    // {tipo:'investitore'|'admin', username}
+let aziendaSelezionata = null;
+
+/* ---------------- utilità ---------------- */
+async function sha256(testo){
+  const enc = new TextEncoder().encode(testo);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function fmt(n){
+  return (CONFIG.valutaSimbolo||'') + ' ' + Number(n).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function mostraToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2400);
+}
+function hashFase(str){
+  let h = 0;
+  for(let i=0;i<str.length;i++){ h = (h*31 + str.charCodeAt(i)) >>> 0; }
+  return (h % 1000)/1000 * 2*Math.PI;
+}
+// Prezzo corrente: NON è casuale. È funzione deterministica di:
+// prezzo base dell'ultimo evento/scambio + tendenza di lungo periodo + una
+// piccola oscillazione ciclica (stesso valore per chiunque la calcoli, nello
+// stesso istante, perché dipende solo dall'orologio, non da un generatore
+// casuale locale). Vedi il manuale PDF, sezione formule.
+function prezzoCorrente(az, now){
+  now = now || Date.now();
+  if(!az.attiva) return az.prezzoBase;
+  const giorni = (now - az.timestampBase) / 86400000;
+  const trend = Math.exp((az.tendenza||0) * giorni);
+  const fase = hashFase(az.id);
+  const periodoMs = 6*3600000; // ciclo di 6 ore
+  const osc = 1 + 0.01*Math.sin((now/periodoMs)*2*Math.PI + fase);
+  return Math.max(0.01, az.prezzoBase * trend * osc);
+}
+
+/* =====================================================================
+   LOGIN / REGISTRAZIONE
+   ===================================================================== */
+window.mostraTab = function(t){
+  ['login','registrati','admin'].forEach(x=>{
+    document.getElementById('tab'+cap(x)+'Btn').classList.toggle('on', x===t);
+  });
+  document.getElementById('formLogin').classList.toggle('hidden', t!=='login');
+  document.getElementById('formReg').classList.toggle('hidden', t!=='registrati');
+  document.getElementById('formAdmin').classList.toggle('hidden', t!=='admin');
+  document.getElementById('loginMsg').textContent = '';
+}
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+function loginMsg(msg, ok){
+  const el = document.getElementById('loginMsg');
+  el.textContent = msg;
+  el.className = ok ? 'ok' : 'err';
+}
+
+window.eseguiRegistrazione = async function(){
+  if(!checkFirebase()) return;
+  const user = document.getElementById('regUser').value.trim();
+  const pass = document.getElementById('regPass').value;
+  const pass2 = document.getElementById('regPass2').value;
+  if(!/^[A-Za-z0-9_\-]{3,20}$/.test(user)){ loginMsg('Nome investitore: 3-20 caratteri, senza spazi.'); return; }
+  if(pass.length < 4){ loginMsg('La password deve avere almeno 4 caratteri.'); return; }
+  if(pass !== pass2){ loginMsg('Le due password non coincidono.'); return; }
+
+  const snap = await get(ref(db, 'investitori/'+user+'/pub'));
+  if(snap.exists()){ loginMsg('Nome investitore già in uso.'); return; }
+
+  const hash = await sha256(pass);
+  await set(ref(db, 'investitori/'+user+'/auth'), { passHash: hash });
+  await set(ref(db, 'investitori/'+user+'/pub'), { saldo: CONFIG.saldoIniziale, portafoglio: {}, creato: Date.now() });
+  sessione = { tipo:'investitore', username: user };
+  entraInApp();
+}
+
+window.eseguiLogin = async function(){
+  if(!checkFirebase()) return;
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const snap = await get(ref(db, 'investitori/'+user+'/auth'));
+  if(!snap.exists()){ loginMsg('Investitore non trovato.'); return; }
+  const hash = await sha256(pass);
+  if(snap.val().passHash !== hash){ loginMsg('Password errata.'); return; }
+  sessione = { tipo:'investitore', username: user };
+  entraInApp();
+}
+
+window.eseguiLoginAdmin = async function(){
+  if(!checkFirebase()) return;
+  const pass = document.getElementById('adminPass').value;
+  const snap = await get(ref(db, 'config/adminPassHash'));
+  const hash = await sha256(pass);
+  if(!snap.exists() || snap.val() !== hash){ loginMsg('Password amministratore errata.'); return; }
+  sessione = { tipo:'admin', username:'Amministratore' };
+  entraInApp();
+}
+
+function checkFirebase(){
+  if(!firebaseOk){ loginMsg('Configurazione Firebase mancante: vedi avviso in alto e il manuale PDF.'); return false; }
+  return true;
+}
+
+window.logout = function(){
+  sessione = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+/* =====================================================================
+   AVVIO APP + LISTENER IN TEMPO REALE
+   ===================================================================== */
+function entraInApp(){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('whoName').textContent = sessione.username;
+  document.getElementById('whoBadge').classList.toggle('hidden', sessione.tipo!=='admin');
+  document.getElementById('navAdmin').classList.toggle('hidden', sessione.tipo!=='admin');
+  document.getElementById('ordinePanel').classList.toggle('hidden', sessione.tipo==='admin');
+  cambiaTab('mercato');
+  attaccaListener();
+  setInterval(refreshPrezziLive, 3000); // ricalcola i prezzi live (nessuna scrittura, solo lettura formula)
+}
+
+window.cambiaTab = function(nome){
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('on', b.dataset.tab===nome));
+  document.querySelectorAll('.tabpane').forEach(p=>p.classList.add('hidden'));
+  document.getElementById('tab-'+nome).classList.remove('hidden');
+  if(nome==='conto') renderConto();
+  if(nome==='classifica') renderClassifica();
+  if(nome==='admin') renderAdmin();
+}
+
+function attaccaListener(){
+  onValue(ref(db,'config'), snap=>{
+    if(snap.exists()) CONFIG = Object.assign(CONFIG, snap.val());
+    renderTutto();
+  });
+  onValue(ref(db,'aziende'), snap=>{
+    AZIENDE = snap.exists() ? snap.val() : {};
+    Object.keys(AZIENDE).forEach(id => AZIENDE[id].id = id);
+    if(!aziendaSelezionata && Object.keys(AZIENDE).length) aziendaSelezionata = Object.keys(AZIENDE)[0];
+    renderTutto();
+  });
+  onValue(ref(db,'investitori'), snap=>{
+    const val = snap.exists() ? snap.val() : {};
+    INVESTITORI = {};
+    Object.keys(val).forEach(u => { INVESTITORI[u] = val[u].pub || {saldo:0,portafoglio:{}}; });
+    renderTutto();
+  });
+  onValue(ref(db,'operazioni'), snap=>{
+    const val = snap.exists() ? snap.val() : {};
+    OPERAZIONI = Object.keys(val).map(k=>Object.assign({id:k}, val[k])).sort((a,b)=>b.timestamp-a.timestamp);
+    renderTutto();
+  });
+}
+function refreshPrezziLive(){ renderListaAziende(); renderQuotazione(); renderChart(); }
+
+function renderTutto(){
+  renderListaAziende(); renderQuotazione(); renderChart(); renderFeedGlobale();
+  aggiornaStima(); popolaSelectAziende();
+  if(!document.getElementById('tab-conto').classList.contains('hidden')) renderConto();
+  if(!document.getElementById('tab-classifica').classList.contains('hidden')) renderClassifica();
+  if(!document.getElementById('tab-admin').classList.contains('hidden')) renderAdmin();
+}
+
+/* =====================================================================
+   RENDER: MERCATO
+   ===================================================================== */
+function renderListaAziende(){
+  const el = document.getElementById('listaAziende');
+  const ids = Object.keys(AZIENDE);
+  if(!ids.length){ el.innerHTML = '<span class="muted">Nessuna azienda ancora.</span>'; return; }
+  el.innerHTML = ids.map(id=>{
+    const az = AZIENDE[id];
+    const p = prezzoCorrente(az);
+    const varPct = ((p - az.prezzoIniziale) / az.prezzoIniziale) * 100;
+    const cls = varPct>=0.05?'up':varPct<=-0.05?'down':'flat';
+    return `<div class="co-item ${id===aziendaSelezionata?'active':''}" onclick="selezionaAzienda('${id}')">
+      <div><div class="nome">${az.nome}${az.attiva===false?' <span class="badge">sospesa</span>':''}</div><div class="settore">${az.settore||''}</div></div>
+      <div style="text-align:right;"><div style="font-weight:600;">${fmt(p)}</div><div class="${cls}" style="font-size:11px;">${varPct>=0?'+':''}${varPct.toFixed(2)}%</div></div>
+    </div>`;
+  }).join('');
+}
+window.selezionaAzienda = function(id){ aziendaSelezionata = id; renderQuotazione(); renderChart(); renderListaAziende(); aggiornaStima(); }
+
+function renderQuotazione(){
+  const az = AZIENDE[aziendaSelezionata];
+  if(!az){
+    document.getElementById('qName').textContent = "Seleziona un'azienda";
+    document.getElementById('qSector').textContent = '—';
+    document.getElementById('qPrice').textContent = '—';
+    document.getElementById('qChange').textContent = '';
+    return;
+  }
+  const p = prezzoCorrente(az);
+  const varPct = ((p - az.prezzoIniziale)/az.prezzoIniziale)*100;
+  document.getElementById('qName').textContent = az.nome;
+  document.getElementById('qSector').textContent = az.settore || '';
+  document.getElementById('qPrice').textContent = fmt(p);
+  const ch = document.getElementById('qChange');
+  ch.textContent = (varPct>=0?'▲ +':'▼ ')+varPct.toFixed(2)+'%';
+  ch.className = 'quote-change ' + (varPct>=0?'up':'down');
+}
+
+function storicoPrezzi(az){
+  // costruisce la serie storica REALE dai log (nessun valore inventato):
+  // prezzo iniziale + prezzo dopo ogni evento/scambio registrato per l'azienda
+  const punti = [{ t: az.creato || 0, p: az.prezzoIniziale }];
+  OPERAZIONI.filter(o=>o.aziendaId===az.id && o.prezzoDopo!=null)
+    .sort((a,b)=>a.timestamp-b.timestamp)
+    .forEach(o=> punti.push({ t:o.timestamp, p:o.prezzoDopo }));
+  punti.push({ t: Date.now(), p: prezzoCorrente(az) });
+  return punti;
+}
+
+function renderChart(){
+  const canvas = document.getElementById('chart');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const az = AZIENDE[aziendaSelezionata];
+  if(!az){ ctx.fillStyle='#3a4048'; ctx.font='13px IBM Plex Mono'; ctx.fillText('Nessun dato da visualizzare.',20,h/2); return; }
+  const dati = storicoPrezzi(az).slice(-60);
+  const prezzi = dati.map(d=>d.p);
+  const min = Math.min(...prezzi), max = Math.max(...prezzi);
+  const pad = (max-min)*0.12 || max*0.05 || 1;
+  const yMin = min-pad, yMax = max+pad;
+  const mL=58,mB=20,mT=10,mR=12, plotW=w-mL-mR, plotH=h-mT-mB;
+  ctx.strokeStyle='#1c222a'; ctx.lineWidth=1; ctx.font='10px IBM Plex Mono'; ctx.fillStyle='#5b6470';
+  for(let i=0;i<=4;i++){
+    const y = mT+(plotH/4)*i;
+    ctx.beginPath(); ctx.moveTo(mL,y); ctx.lineTo(w-mR,y); ctx.stroke();
+    ctx.fillText('€'+(yMax-((yMax-yMin)/4)*i).toFixed(2), 3, y+3);
+  }
+  const xStep = plotW/(dati.length-1 || 1);
+  ctx.beginPath();
+  dati.forEach((d,i)=>{
+    const x = mL+xStep*i, y = mT+plotH-((d.p-yMin)/(yMax-yMin))*plotH;
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  const trend = dati[dati.length-1].p - dati[0].p;
+  ctx.strokeStyle = trend>=0?'#3ddc84':'#ff5c5c'; ctx.lineWidth=2; ctx.stroke();
+  ctx.lineTo(mL+xStep*(dati.length-1), mT+plotH); ctx.lineTo(mL, mT+plotH); ctx.closePath();
+  const grad = ctx.createLinearGradient(0,mT,0,mT+plotH);
+  grad.addColorStop(0, trend>=0?'rgba(61,220,132,.22)':'rgba(255,92,92,.22)');
+  grad.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle = grad; ctx.fill();
+}
+
+function renderFeedGlobale(){
+  const el = document.getElementById('feedGlobale');
+  if(!OPERAZIONI.length){ el.innerHTML = '<div class="muted">Nessuna attività ancora.</div>'; return; }
+  el.innerHTML = OPERAZIONI.slice(0,50).map(o=>`<div>${riassuntoOperazione(o)}</div>`).join('');
+}
+function riassuntoOperazione(o){
+  const azNome = (AZIENDE[o.aziendaId]||{}).nome || o.aziendaId || '';
+  const data = new Date(o.timestamp).toLocaleString('it-IT');
+  if(o.tipo==='buy') return `<b>${o.investitore}</b> ha acquistato ${o.quantita} × ${azNome} a ${fmt(o.prezzoEsecuzione)} <span class="muted">(${data})</span>`;
+  if(o.tipo==='sell') return `<b>${o.investitore}</b> ha venduto ${o.quantita} × ${azNome} a ${fmt(o.prezzoEsecuzione)} <span class="muted">(${data})</span>`;
+  if(o.tipo==='evento') return `<b>Evento — ${azNome}:</b> ${o.motivo} (${o.variazionePct>=0?'+':''}${o.variazionePct.toFixed(2)}%) <span class="muted">(${data})</span>`;
+  if(o.tipo==='dividendo') return `<b>Dividendo — ${azNome}:</b> distribuiti ${fmt(o.importoTotale)} agli azionisti <span class="muted">(${data})</span>`;
+  if(o.tipo==='admin-rettifica') return `<b>Admin:</b> saldo di ${o.investitore} modificato (${o.note||''}) <span class="muted">(${data})</span>`;
+  return `${o.tipo} <span class="muted">(${data})</span>`;
+}
+
+/* =====================================================================
+   ORDINI (acquisto/vendita) — con transazione Firebase, nessun caso
+   ===================================================================== */
+window.aggiornaStima = function(){
+  const az = AZIENDE[aziendaSelezionata];
+  const qty = parseInt(document.getElementById('inQty').value)||0;
+  document.getElementById('stimaCosto').value = az ? fmt(qty*prezzoCorrente(az)) : '—';
+}
+
+window.ordine = async function(tipo){
+  if(sessione.tipo==='admin'){ mostraToast('Accedi come investitore per operare, oppure usa "opera per conto di" nel pannello Admin.'); return; }
+  const az = AZIENDE[aziendaSelezionata];
+  if(!az){ mostraToast("Seleziona prima un'azienda."); return; }
+  const qty = parseInt(document.getElementById('inQty').value);
+  if(!qty || qty<=0){ mostraToast('Quantità non valida.'); return; }
+  try{
+    await eseguiOrdine(sessione.username, az.id, qty, tipo);
+    mostraToast(tipo==='buy' ? 'Acquisto eseguito.' : 'Vendita eseguita.');
+  }catch(e){ mostraToast(e.message || 'Operazione non riuscita.'); }
+}
+
+async function eseguiOrdine(username, aziendaId, qty, tipo){
+  const invSnap = await get(ref(db,'investitori/'+username+'/pub'));
+  if(!invSnap.exists()) throw new Error('Investitore non trovato.');
+  const inv = invSnap.val();
+  const possedute = (inv.portafoglio && inv.portafoglio[aziendaId]) || 0;
+  if(tipo==='sell' && qty>possedute) throw new Error('Non possiedi abbastanza azioni.');
+
+  let prezzoEsecuzione, prezzoDopo;
+  await runTransaction(ref(db,'aziende/'+aziendaId), az=>{
+    if(!az) return az;
+    az.id = aziendaId;
+    const pAttuale = prezzoCorrente(az);
+    const valoreOrdine = pAttuale*qty;
+    if(tipo==='buy' && valoreOrdine>inv.saldo) throw new Error('Liquidità insufficiente.');
+    const impatto = (CONFIG.impactFactor||0.5) * (valoreOrdine/(az.liquidita||50000));
+    prezzoEsecuzione = pAttuale;
+    prezzoDopo = tipo==='buy' ? pAttuale*(1+impatto) : pAttuale*(1-impatto);
+    az.prezzoBase = Math.max(0.01, prezzoDopo);
+    az.timestampBase = Date.now();
+    return az;
+  });
+
+  const valoreOrdine = prezzoEsecuzione*qty;
+  await runTransaction(ref(db,'investitori/'+username+'/pub'), pub=>{
+    if(!pub) return pub;
+    pub.portafoglio = pub.portafoglio || {};
+    if(tipo==='buy'){
+      pub.saldo = pub.saldo - valoreOrdine;
+      pub.portafoglio[aziendaId] = (pub.portafoglio[aziendaId]||0) + qty;
+    } else {
+      pub.saldo = pub.saldo + valoreOrdine;
+      pub.portafoglio[aziendaId] = (pub.portafoglio[aziendaId]||0) - qty;
+    }
+    return pub;
+  });
+
+  await push(ref(db,'operazioni'), {
+    tipo, investitore:username, aziendaId, quantita:qty,
+    prezzoEsecuzione, prezzoDopo, timestamp: Date.now()
+  });
+}
+
+/* =====================================================================
+   RENDER: IL MIO CONTO
+   ===================================================================== */
+function renderConto(){
+  if(sessione.tipo==='admin') return;
+  const inv = INVESTITORI[sessione.username] || {saldo:0,portafoglio:{}};
+  let valorePos = 0;
+  const righe = Object.keys(inv.portafoglio||{}).filter(id=>inv.portafoglio[id]>0).map(id=>{
+    const az = AZIENDE[id]; if(!az) return '';
+    const qty = inv.portafoglio[id];
+    const val = qty*prezzoCorrente(az);
+    valorePos += val;
+    return `<tr><td>${az.nome}</td><td>${qty}</td><td>${fmt(val)}</td></tr>`;
+  }).join('');
+  document.getElementById('ctSaldo').textContent = fmt(inv.saldo||0);
+  document.getElementById('ctValore').textContent = fmt(valorePos);
+  document.getElementById('ctTotale').textContent = fmt((inv.saldo||0)+valorePos);
+  document.getElementById('ctPosizioni').innerHTML = righe || '<tr><td colspan="3" class="muted">Nessuna posizione.</td></tr>';
+  const mie = OPERAZIONI.filter(o=>o.investitore===sessione.username).slice(0,30);
+  document.getElementById('ctStorico').innerHTML = mie.length ? mie.map(o=>`<div>${riassuntoOperazione(o)}</div>`).join('') : '<div class="muted">Nessuna operazione ancora.</div>';
+}
+
+/* =====================================================================
+   RENDER: CLASSIFICA
+   ===================================================================== */
+function patrimonioDi(username){
+  const inv = INVESTITORI[username] || {saldo:0,portafoglio:{}};
+  let val = inv.saldo||0;
+  Object.keys(inv.portafoglio||{}).forEach(id=>{
+    const az = AZIENDE[id]; if(az) val += (inv.portafoglio[id]||0)*prezzoCorrente(az);
+  });
+  return val;
+}
+function renderClassifica(){
+  const lista = Object.keys(INVESTITORI).map(u=>({u, tot:patrimonioDi(u)})).sort((a,b)=>b.tot-a.tot);
+  document.getElementById('classificaBody').innerHTML = lista.length ? lista.map((r,i)=>
+    `<tr class="clickable" onclick="dettaglioInvestitore('${r.u}')"><td class="rankNum">${i+1}</td><td>${r.u}</td><td style="text-align:right;">${fmt(r.tot)}</td></tr>`
+  ).join('') : '<tr><td colspan="3" class="muted">Nessun investitore ancora.</td></tr>';
+}
+window.dettaglioInvestitore = function(u){
+  const inv = INVESTITORI[u] || {saldo:0,portafoglio:{}};
+  let righe = Object.keys(inv.portafoglio||{}).filter(id=>inv.portafoglio[id]>0).map(id=>{
+    const az = AZIENDE[id]; if(!az) return '';
+    return `<tr><td>${az.nome}</td><td>${inv.portafoglio[id]}</td><td>${fmt(inv.portafoglio[id]*prezzoCorrente(az))}</td></tr>`;
+  }).join('') || '<tr><td colspan="3" class="muted">Nessuna posizione.</td></tr>';
+  apriModal(`Profilo di ${u}`, `
+    <p>Liquidità: <b>${fmt(inv.saldo||0)}</b></p>
+    <p>Patrimonio totale: <b>${fmt(patrimonioDi(u))}</b></p>
+    <table><thead><tr><th>Azienda</th><th>Quantità</th><th>Valore</th></tr></thead><tbody>${righe}</tbody></table>
+  `);
+}
+
+/* =====================================================================
+   MODALE GENERICO
+   ===================================================================== */
+function apriModal(titolo, htmlContenuto){
+  document.getElementById('modalRoot').innerHTML = `
+    <div class="modalBg" onclick="if(event.target===this) chiudiModal()">
+      <div class="modalBox"><span class="closeX" onclick="chiudiModal()">✕</span><h3>${titolo}</h3>${htmlContenuto}</div>
+    </div>`;
+}
+window.chiudiModal = function(){ document.getElementById('modalRoot').innerHTML=''; }
+
+/* =====================================================================
+   ADMIN
+   ===================================================================== */
+function popolaSelectAziende(){
+  ['evAzienda','dvAzienda'].forEach(selId=>{
+    const sel = document.getElementById(selId);
+    if(!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = Object.keys(AZIENDE).map(id=>`<option value="${id}">${AZIENDE[id].nome}</option>`).join('');
+    if(cur) sel.value = cur;
+  });
+}
+
+window.adminCreaAzienda = async function(){
+  const nome = document.getElementById('acNome').value.trim();
+  const settore = document.getElementById('acSettore').value.trim() || 'Generico';
+  const prezzo = parseFloat(document.getElementById('acPrezzo').value);
+  const shareTotali = parseInt(document.getElementById('acShare').value);
+  const liquidita = parseFloat(document.getElementById('acLiquidita').value);
+  const tendenza = parseFloat(document.getElementById('acTendenza').value)/100;
+  if(!nome || !prezzo || prezzo<=0){ mostraToast('Nome e prezzo iniziale sono obbligatori.'); return; }
+  const nuovaRef = push(ref(db,'aziende'));
+  await set(nuovaRef, {
+    nome, settore, prezzoBase: prezzo, prezzoIniziale: prezzo,
+    timestampBase: Date.now(), creato: Date.now(),
+    shareTotali: shareTotali||1000, liquidita: liquidita||50000,
+    tendenza: isNaN(tendenza)?0:tendenza, attiva: true
+  });
+  document.getElementById('acNome').value=''; document.getElementById('acSettore').value='';
+  mostraToast('Azienda quotata.');
+}
+
+window.adminApplicaEvento = async function(){
+  const id = document.getElementById('evAzienda').value;
+  const tipo = document.getElementById('evTipo').value;
+  const valore = parseFloat(document.getElementById('evValore').value);
+  const motivo = document.getElementById('evMotivo').value.trim();
+  if(!id){ mostraToast("Seleziona un'azienda."); return; }
+  if(isNaN(valore)){ mostraToast('Inserisci un valore.'); return; }
+  if(!motivo){ mostraToast("Il motivo è obbligatorio: resta nello storico dell'azienda."); return; }
+
+  let prezzoPrima, prezzoDopo, variazionePct;
+  await runTransaction(ref(db,'aziende/'+id), az=>{
+    if(!az) return az;
+    az.id = id;
+    prezzoPrima = prezzoCorrente(az);
+    prezzoDopo = tipo==='pct' ? prezzoPrima*(1+valore/100) : valore;
+    prezzoDopo = Math.max(0.01, prezzoDopo);
+    variazionePct = ((prezzoDopo-prezzoPrima)/prezzoPrima)*100;
+    az.prezzoBase = prezzoDopo;
+    az.timestampBase = Date.now();
+    return az;
+  });
+  await push(ref(db,'operazioni'), { tipo:'evento', aziendaId:id, motivo, prezzoDopo, variazionePct, timestamp: Date.now() });
+  document.getElementById('evValore').value=''; document.getElementById('evMotivo').value='';
+  mostraToast('Evento applicato.');
+}
+
+window.adminDistribuisciDividendo = async function(){
+  const id = document.getElementById('dvAzienda').value;
+  const importo = parseFloat(document.getElementById('dvImporto').value);
+  const az = AZIENDE[id];
+  if(!az){ mostraToast("Seleziona un'azienda."); return; }
+  if(!importo || importo<=0){ mostraToast('Inserisci un importo valido.'); return; }
+  const shareTotali = az.shareTotali || 1000;
+
+  const utenti = Object.keys(INVESTITORI).filter(u => (INVESTITORI[u].portafoglio||{})[id] > 0);
+  if(!utenti.length){ mostraToast('Nessun azionista possiede quote di questa azienda.'); return; }
+
+  for(const u of utenti){
+    const qty = INVESTITORI[u].portafoglio[id];
+    const quota = (qty/shareTotali) * importo;
+    await runTransaction(ref(db,'investitori/'+u+'/pub'), pub=>{
+      if(!pub) return pub;
+      pub.saldo = (pub.saldo||0) + quota;
+      return pub;
+    });
+  }
+  await push(ref(db,'operazioni'), { tipo:'dividendo', aziendaId:id, importoTotale:importo, timestamp: Date.now() });
+  document.getElementById('dvImporto').value='';
+  mostraToast('Dividendo distribuito a '+utenti.length+' azionisti.');
+}
+
+function renderAdmin(){
+  popolaSelectAziende();
+  const cfg = document.getElementById('cfgValutaNome');
+  if(cfg){
+    document.getElementById('cfgValutaNome').value = CONFIG.valutaNome||'';
+    document.getElementById('cfgValutaSimbolo').value = CONFIG.valutaSimbolo||'';
+    document.getElementById('cfgSaldoIniziale').value = CONFIG.saldoIniziale||0;
+    document.getElementById('cfgImpact').value = CONFIG.impactFactor||0.5;
+  }
+  const el = document.getElementById('adminInvestitori');
+  const utenti = Object.keys(INVESTITORI);
+  if(!utenti.length){ el.innerHTML = '<span class="muted">Nessun investitore registrato ancora.</span>'; return; }
+  el.innerHTML = utenti.map(u=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+      <span>${u} — ${fmt(INVESTITORI[u].saldo||0)}</span>
+      <span>
+        <button class="btn-ghost" onclick="adminModificaSaldo('${u}')">Modifica saldo</button>
+        <button class="btn-ghost" onclick="adminOperaPerConto('${u}')">Opera per lui</button>
+      </span>
+    </div>`).join('');
+}
+
+window.adminModificaSaldo = function(username){
+  apriModal('Modifica saldo di '+username, `
+    <label>Nuovo saldo</label><input type="number" id="mSaldoNuovo" value="${(INVESTITORI[username]||{}).saldo||0}" step="0.01">
+    <label>Motivo (facoltativo)</label><input type="text" id="mSaldoMotivo">
+    <button class="btn-amber" style="width:100%;margin-top:14px;" onclick="confermaModificaSaldo('${username}')">Salva</button>
+  `);
+}
+window.confermaModificaSaldo = async function(username){
+  const nuovo = parseFloat(document.getElementById('mSaldoNuovo').value);
+  const motivo = document.getElementById('mSaldoMotivo').value.trim();
+  if(isNaN(nuovo)){ mostraToast('Valore non valido.'); return; }
+  await update(ref(db,'investitori/'+username+'/pub'), { saldo: nuovo });
+  await push(ref(db,'operazioni'), { tipo:'admin-rettifica', investitore:username, note:motivo, timestamp: Date.now() });
+  chiudiModal(); mostraToast('Saldo aggiornato.');
+}
+
+window.adminOperaPerConto = function(username){
+  const opzioni = Object.keys(AZIENDE).map(id=>`<option value="${id}">${AZIENDE[id].nome}</option>`).join('');
+  apriModal('Opera per conto di '+username, `
+    <label>Azienda</label><select id="opAzienda">${opzioni}</select>
+    <label>Quantità</label><input type="number" id="opQty" value="1" min="1" step="1">
+    <div class="row2" style="margin-top:14px;">
+      <button class="btn-green" onclick="confermaOperaPerConto('${username}','buy')">Acquista</button>
+      <button class="btn-red" onclick="confermaOperaPerConto('${username}','sell')">Vendi</button>
+    </div>
+  `);
+}
+window.confermaOperaPerConto = async function(username, tipo){
+  const id = document.getElementById('opAzienda').value;
+  const qty = parseInt(document.getElementById('opQty').value);
+  if(!qty||qty<=0){ mostraToast('Quantità non valida.'); return; }
+  try{ await eseguiOrdine(username, id, qty, tipo); chiudiModal(); mostraToast('Operazione eseguita per '+username+'.'); }
+  catch(e){ mostraToast(e.message); }
+}
+
+window.adminSalvaConfig = async function(){
+  const nuovaConfig = {
+    valutaNome: document.getElementById('cfgValutaNome').value.trim() || 'Diamanti',
+    valutaSimbolo: document.getElementById('cfgValutaSimbolo').value.trim() || '💎',
+    saldoIniziale: parseFloat(document.getElementById('cfgSaldoIniziale').value) || 0,
+    impactFactor: parseFloat(document.getElementById('cfgImpact').value) || 0.5
+  };
+  await update(ref(db,'config'), nuovaConfig);
+  mostraToast('Impostazioni salvate.');
+}
+window.adminCambiaPassword = async function(){
+  const nuova = document.getElementById('cfgNuovaAdminPass').value;
+  if(!nuova){ mostraToast('Password vuota: nessuna modifica.'); return; }
+  if(nuova.length<4){ mostraToast('Almeno 4 caratteri.'); return; }
+  const hash = await sha256(nuova);
+  await set(ref(db,'config/adminPassHash'), hash);
+  document.getElementById('cfgNuovaAdminPass').value='';
+  mostraToast('Password amministratore aggiornata.');
+}
+
+/* =====================================================================
+   PRIMO AVVIO: se il progetto Firebase è del tutto vuoto, chiede di
+   impostare la password admin iniziale.
+   ===================================================================== */
+async function controllaPrimoAvvio(){
+  if(!firebaseOk) return;
+  const snap = await get(ref(db,'config/adminPassHash'));
+  if(!snap.exists()){
+    const pass = prompt('Primo avvio rilevato: imposta ora la password amministratore per questa borsa.');
+    if(pass && pass.length>=4){
+      const hash = await sha256(pass);
+      await set(ref(db,'config'), { valutaNome:"Diamanti", valutaSimbolo:"💎", saldoIniziale:100, impactFactor:0.5, adminPassHash: hash });
+      mostraToast('Password amministratore impostata. Ora puoi accedere dalla scheda Admin.');
+    }
+  }
+}
+controllaPrimoAvvio();
+</script>
+</body>
+</html>
