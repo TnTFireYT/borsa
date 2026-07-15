@@ -102,8 +102,8 @@
 <!-- ================= LOGIN ================= -->
 <div id="loginScreen">
   <div class="loginBox">
-    <h1>BORSA <span>NEW TRINO</span></h1>
-    <div class="tag">Mercato condiviso in tempo reale</div>
+    <h1>BORSA DI <span>NEW TRINO</span></h1>
+    <div class="tag">La Borsa Ufficiale del Granducato di New Trino</div>
     <div class="tabbar">
       <button class="on" id="tabLoginBtn" onclick="mostraTab('login')">Accedi</button>
       <button id="tabRegBtn" onclick="mostraTab('registrati')">Registrati</button>
@@ -118,7 +118,7 @@
       <button class="btn-amber" style="width:100%;margin-top:16px;" onclick="eseguiLogin()">Accedi</button>
     </div>
 
-    <div id="formReg" class="hidden">
+    <div id="formReg">
       <label>Scegli un nome investitore</label>
       <input type="text" id="regUser">
       <label>Scegli una password</label>
@@ -128,7 +128,7 @@
       <button class="btn-green" style="width:100%;margin-top:16px;" onclick="eseguiRegistrazione()">Crea account</button>
     </div>
 
-    <div id="formAdmin" class="hidden">
+    <div id="formAdmin">
       <label>Password amministratore</label>
       <input type="password" id="adminPass">
       <button class="btn-blue" style="width:100%;margin-top:16px;" onclick="eseguiLoginAdmin()">Entra come admin</button>
