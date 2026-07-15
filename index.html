@@ -7,9 +7,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* ======================================================================
+     Palette ispirata allo stemma del Comune di Trino (VC), Piemonte:
+     "Di rosso, mantellato d'argento, a tre torri" — quindi rosso araldico
+     come colore principale e argento come accento secondario, su una base
+     scura per leggibilità stile "trading terminal".
+     ====================================================================== */
   :root{
-    --bg:#0b0d10; --panel:#12161b; --panel2:#161b21; --border:#242a32;
-    --text:#dbe2e9; --muted:#7c8794; --amber:#e8a33d; --amber-dim:#8a6528;
+    --bg:#121013; --panel:#1c1719; --panel2:#221c1f; --border:#332a2d;
+    --text:#eee2e4; --muted:#a3939588;
+    --amber:#b3162f; --amber-dim:#5c0f1c;      /* rosso araldico (accento principale) */
+    --argento:#cfd4d8;                          /* argento araldico (accento secondario) */
     --green:#3ddc84; --red:#ff5c5c; --blue:#4f8cff;
     --mono:'IBM Plex Mono', monospace; --disp:'Space Grotesk', sans-serif;
   }
@@ -19,49 +27,50 @@
   button{cursor:pointer;border:none;border-radius:6px;font-family:var(--mono);font-weight:600;font-size:12.5px;padding:9px 14px;transition:opacity .15s;}
   button:hover{opacity:.85;} button:active{transform:translateY(1px);}
   button:disabled{opacity:.4;cursor:not-allowed;}
-  .btn-amber{background:var(--amber);color:#141414;}
+  .btn-amber{background:var(--amber);color:#fff0f0;}
   .btn-green{background:var(--green);color:#08130d;}
   .btn-red{background:var(--red);color:#1a0505;}
   .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);}
   .btn-blue{background:var(--blue);color:#08101f;}
-  input,select{width:100%;background:#0e1116;border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:6px;font-family:var(--mono);font-size:13px;}
+  input,select{width:100%;background:#17110f0d;background-color:#0e0c0d;border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:6px;font-family:var(--mono);font-size:13px;}
   input:focus,select:focus{outline:none;border-color:var(--amber-dim);}
-  label{display:block;font-size:11px;color:var(--muted);margin:9px 0 4px;text-transform:uppercase;letter-spacing:.5px;}
+  label{display:block;font-size:11px;color:#a89b9d;margin:9px 0 4px;text-transform:uppercase;letter-spacing:.5px;}
   .hidden{display:none !important;}
   .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;}
   .panel h2{font-size:14px;text-transform:uppercase;letter-spacing:1px;color:var(--amber);margin:0 0 12px;display:flex;align-items:center;gap:8px;}
   .panel h2::before{content:"";width:6px;height:6px;background:var(--amber);border-radius:50%;}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-  .muted{color:var(--muted);}
-  .up{color:var(--green);} .down{color:var(--red);} .flat{color:var(--muted);}
+  .muted{color:#a3939599;}
+  .up{color:var(--green);} .down{color:var(--red);} .flat{color:#a39395;}
   a.link{color:var(--amber);cursor:pointer;text-decoration:underline;font-size:12px;}
 
   /* login */
   #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-  .loginBox{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:26px;}
+  .loginBox{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:26px;position:relative;}
+  .loginBox::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;background:linear-gradient(90deg,var(--amber),var(--argento),var(--amber));}
   .loginBox h1{font-size:26px;margin:0 0 4px;}
   .loginBox h1 span{color:var(--amber);}
-  .loginBox .tag{color:var(--muted);font-size:12px;margin-bottom:18px;}
+  .loginBox .tag{color:#a89b9d;font-size:12px;margin-bottom:18px;}
   .tabbar{display:flex;gap:6px;margin-bottom:14px;}
-  .tabbar button{flex:1;background:var(--panel2);color:var(--muted);}
-  .tabbar button.on{background:var(--amber);color:#141414;}
+  .tabbar button{flex:1;background:var(--panel2);color:#a89b9d;}
+  .tabbar button.on{background:var(--amber);color:#fff0f0;}
   #loginMsg{font-size:12px;margin-top:10px;min-height:16px;}
   #loginMsg.err{color:var(--red);} #loginMsg.ok{color:var(--green);}
 
   /* app shell */
   #app{display:none;}
-  header.top{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;background:#0d1013;}
+  header.top{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;background:#171213;}
   header.top .brand{font-family:var(--disp);font-size:18px;}
   header.top .brand span{color:var(--amber);}
-  header.top .who{font-size:12px;color:var(--muted);}
+  header.top .who{font-size:12px;color:#a89b9d;}
   header.top .who b{color:var(--amber);}
-  nav.tabs{display:flex;gap:4px;padding:10px 20px;background:#0d1013;border-bottom:1px solid var(--border);overflow-x:auto;}
-  nav.tabs button{background:transparent;color:var(--muted);white-space:nowrap;}
+  nav.tabs{display:flex;gap:4px;padding:10px 20px;background:#171213;border-bottom:1px solid var(--border);overflow-x:auto;}
+  nav.tabs button{background:transparent;color:#a89b9d;white-space:nowrap;}
   nav.tabs button.on{background:var(--panel2);color:var(--amber);}
   main{max-width:1100px;margin:0 auto;padding:18px 16px 60px;}
 
   table{border-collapse:collapse;width:100%;font-size:12.5px;}
-  th{text-align:left;color:var(--muted);font-weight:500;padding:8px 8px;border-bottom:1px solid var(--border);text-transform:uppercase;font-size:10.5px;letter-spacing:.5px;}
+  th{text-align:left;color:#a89b9d;font-weight:500;padding:8px 8px;border-bottom:1px solid var(--border);text-transform:uppercase;font-size:10.5px;letter-spacing:.5px;}
   td{padding:8px 8px;border-bottom:1px solid var(--border);}
   tr.clickable{cursor:pointer;} tr.clickable:hover{background:var(--panel2);}
 
@@ -69,24 +78,38 @@
   .co-item:hover{border-color:var(--amber-dim);}
   .co-item.active{background:var(--panel2);border-color:var(--amber);}
   .co-item .nome{font-weight:600;}
-  .co-item .settore{font-size:10.5px;color:var(--muted);text-transform:uppercase;}
+  .co-item .settore{font-size:10.5px;color:#a89b9d;text-transform:uppercase;}
+  .co-logo{width:22px;height:22px;border-radius:5px;object-fit:cover;background:#0e0c0d;border:1px solid var(--border);}
+  #qLogo{width:34px;height:34px;border-radius:7px;object-fit:cover;background:#0e0c0d;border:1px solid var(--border);vertical-align:middle;margin-right:8px;}
 
-  canvas{width:100%;display:block;background:#0e1116;border:1px solid var(--border);border-radius:8px;}
+  canvas{width:100%;display:block;background:#0e0c0d;border:1px solid var(--border);border-radius:8px;}
   .quote-price{font-size:30px;font-weight:700;font-family:var(--disp);}
   .quote-change{font-size:13px;margin-left:8px;}
 
-  .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;background:var(--panel2);color:var(--muted);}
+  .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;background:var(--panel2);color:#a89b9d;}
   .toast{position:fixed;bottom:18px;right:18px;background:var(--panel);border:1px solid var(--amber-dim);padding:10px 16px;border-radius:8px;font-size:12.5px;opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;z-index:80;max-width:280px;}
   .toast.show{opacity:1;transform:translateY(0);}
   .rankNum{color:var(--amber);font-weight:700;width:22px;display:inline-block;}
   .modalBg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:60;padding:16px;}
   .modalBox{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto;}
   .modalBox h3{margin-top:0;color:var(--amber);}
-  .closeX{float:right;cursor:pointer;color:var(--muted);}
+  .closeX{float:right;cursor:pointer;color:#a89b9d;}
   .feed{max-height:220px;overflow-y:auto;font-size:11.5px;line-height:1.7;}
-  .feed div{border-bottom:1px dashed var(--border);padding:5px 0;color:var(--muted);}
+  .feed div{border-bottom:1px dashed var(--border);padding:5px 0;color:#a89b9d;}
   .feed div b{color:var(--text);}
-  .setupWarning{background:#2a1c0c;border:1px solid var(--amber-dim);color:var(--amber);padding:14px;border-radius:8px;font-size:12px;line-height:1.6;margin:16px;}
+  .setupWarning{background:#2a1414;border:1px solid var(--amber-dim);color:#f0b9c2;padding:14px;border-radius:8px;font-size:12px;line-height:1.6;margin:16px;}
+
+  /* serie (pillole) */
+  #seriePills{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  #seriePills button{background:var(--panel2);color:#a89b9d;padding:6px 12px;font-size:11.5px;}
+  #seriePills button.on{background:var(--amber);color:#fff0f0;}
+
+  /* grafico a torta proprietà */
+  .pie-wrap{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;}
+  #pieChart{width:180px;height:180px;max-width:180px;flex:0 0 auto;border-radius:50%;background:transparent;border:none;}
+  .legend{flex:1;min-width:180px;}
+  .legend-item{display:flex;align-items:center;gap:7px;font-size:11.5px;margin-bottom:6px;color:var(--text);}
+  .legend .dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;}
 </style>
 </head>
 <body>
@@ -102,7 +125,7 @@
 <!-- ================= LOGIN ================= -->
 <div id="loginScreen">
   <div class="loginBox">
-    <h1>BORSA DI <span>NEW TRINO</span></h1>
+    <h1>🏰 BORSA DI <span>NEW TRINO</span></h1>
     <div class="tag">La Borsa Ufficiale del Granducato di New Trino</div>
     <div class="tabbar">
       <button class="on" id="tabLoginBtn" onclick="mostraTab('login')">Accedi</button>
@@ -118,7 +141,7 @@
       <button class="btn-amber" style="width:100%;margin-top:16px;" onclick="eseguiLogin()">Accedi</button>
     </div>
 
-    <div id="formReg">
+    <div id="formReg" class="hidden">
       <label>Scegli un nome investitore</label>
       <input type="text" id="regUser">
       <label>Scegli una password</label>
@@ -128,7 +151,7 @@
       <button class="btn-green" style="width:100%;margin-top:16px;" onclick="eseguiRegistrazione()">Crea account</button>
     </div>
 
-    <div id="formAdmin">
+    <div id="formAdmin" class="hidden">
       <label>Password amministratore</label>
       <input type="password" id="adminPass">
       <button class="btn-blue" style="width:100%;margin-top:16px;" onclick="eseguiLoginAdmin()">Entra come admin</button>
@@ -165,23 +188,35 @@
         <div>
           <div class="panel">
             <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-              <div>
-                <div class="muted" style="font-size:11px;text-transform:uppercase;" id="qSector">—</div>
-                <div style="font-size:19px;font-weight:600;" id="qName">Seleziona un'azienda</div>
+              <div style="display:flex;align-items:center;">
+                <img id="qLogo" class="hidden" alt="logo">
+                <div>
+                  <div class="muted" style="font-size:11px;text-transform:uppercase;" id="qSector">—</div>
+                  <div style="font-size:19px;font-weight:600;" id="qName">Seleziona un'azienda</div>
+                </div>
               </div>
               <div><span class="quote-price" id="qPrice">—</span><span class="quote-change" id="qChange"></span></div>
             </div>
+            <div id="seriePills" class="hidden"></div>
             <canvas id="chart" width="800" height="260" style="margin-top:10px;"></canvas>
           </div>
           <div class="panel" id="ordinePanel">
             <h2>Ordine</h2>
             <div class="row2">
               <div><label>Quantità azioni</label><input type="number" id="inQty" value="1" min="1" step="1" oninput="aggiornaStima()"></div>
-              <div><label>Costo stimato</label><input type="text" id="stimaCosto" disabled value="—"></div>
+              <div><label>Costo/ricavo stimato</label><input type="text" id="stimaCosto" disabled value="—"></div>
             </div>
             <div class="row2" style="margin-top:10px;">
               <button class="btn-green" onclick="ordine('buy')">ACQUISTA</button>
               <button class="btn-red" onclick="ordine('sell')">VENDI</button>
+            </div>
+            <div class="muted" style="font-size:10.5px;margin-top:8px;">Il prezzo si muove con ogni ordine (impatto di mercato) e ogni operazione paga la commissione impostata dall'admin: comprare e rivendere subito comporta quindi una piccola perdita, non un guadagno.</div>
+          </div>
+          <div class="panel">
+            <h2>Distribuzione proprietà</h2>
+            <div class="pie-wrap">
+              <canvas id="pieChart" width="180" height="180"></canvas>
+              <div class="legend" id="pieLegend"><span class="muted">Seleziona un'azienda.</span></div>
             </div>
           </div>
           <div class="panel">
@@ -231,6 +266,10 @@
           <div><label>Settore</label><input type="text" id="acSettore"></div>
         </div>
         <div class="row2">
+          <div><label>Logo (URL immagine, facoltativo)</label><input type="text" id="acLogo" placeholder="https://i.imgur.com/xxxx.png"></div>
+          <div><label>Nome prima serie di azioni</label><input type="text" id="acSerieNome" value="Azioni Ordinarie"></div>
+        </div>
+        <div class="row2">
           <div><label>Prezzo iniziale</label><input type="number" id="acPrezzo" value="10" step="0.1"></div>
           <div><label>Azioni totali emesse</label><input type="number" id="acShare" value="1000" step="1"></div>
         </div>
@@ -242,8 +281,46 @@
       </div>
 
       <div class="panel">
-        <h2>Applica evento a un'azienda</h2>
-        <label>Azienda</label><select id="evAzienda"></select>
+        <h2>Aggiungi una nuova serie di azioni</h2>
+        <label>Azienda</label><select id="asAzienda"></select>
+        <label>Nome della nuova serie</label><input type="text" id="asNome" placeholder="es. Azioni Privilegiate">
+        <div class="row2">
+          <div><label>Prezzo iniziale</label><input type="number" id="asPrezzo" value="10" step="0.1"></div>
+          <div><label>Azioni totali emesse</label><input type="number" id="asShare" value="1000" step="1"></div>
+        </div>
+        <div class="row2">
+          <div><label>Liquidità (impatto ordini)</label><input type="number" id="asLiquidita" value="50000" step="100"></div>
+          <div><label>Tendenza giornaliera %</label><input type="number" id="asTendenza" value="0" step="0.01"></div>
+        </div>
+        <button class="btn-blue" style="margin-top:12px;" onclick="adminAggiungiSerie()">+ Aggiungi serie</button>
+      </div>
+
+      <div class="panel">
+        <h2>Modifica azienda esistente</h2>
+        <label>Azienda</label><select id="meAzienda" onchange="caricaModificaAzienda()"></select>
+        <div class="row2">
+          <div><label>Nome</label><input type="text" id="meNome"></div>
+          <div><label>Settore</label><input type="text" id="meSettore"></div>
+        </div>
+        <label>Logo (URL immagine)</label><input type="text" id="meLogo" placeholder="https://i.imgur.com/xxxx.png">
+        <button class="btn-amber" style="margin-top:10px;" onclick="adminSalvaAzienda()">Salva nome/settore/logo</button>
+
+        <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:12px;">
+          <label>Serie da modificare</label><select id="meSerie" onchange="caricaSerieModifica()"></select>
+          <label>Nome serie</label><input type="text" id="meSerieNome">
+          <div class="row2">
+            <div><label>Azioni totali emesse</label><input type="number" id="meShareTotali" step="1"></div>
+            <div><label>Liquidità</label><input type="number" id="meLiquidita" step="100"></div>
+          </div>
+          <label>Tendenza giornaliera %</label><input type="number" id="meTendenza" step="0.01">
+          <button class="btn-blue" style="margin-top:10px;" onclick="adminSalvaSerie()">Salva questa serie</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Applica evento a una serie</h2>
+        <label>Azienda</label><select id="evAzienda" onchange="popolaSerieSelect('evSerie','evAzienda')"></select>
+        <label>Serie</label><select id="evSerie"></select>
         <div class="row2">
           <div><label>Tipo variazione</label>
             <select id="evTipo"><option value="pct">Percentuale (%)</option><option value="abs">Prezzo assoluto (€)</option></select>
@@ -257,9 +334,27 @@
 
       <div class="panel">
         <h2>Distribuisci dividendo</h2>
-        <label>Azienda</label><select id="dvAzienda"></select>
+        <label>Azienda</label><select id="dvAzienda" onchange="popolaSerieSelect('dvSerie','dvAzienda')"></select>
+        <label>Serie</label><select id="dvSerie"></select>
         <label>Utile totale da distribuire</label><input type="number" id="dvImporto" step="0.01">
         <button class="btn-green" style="margin-top:12px;" onclick="adminDistribuisciDividendo()">Distribuisci in base alle quote</button>
+      </div>
+
+      <div class="panel">
+        <h2>Assegna o rimuovi azioni a un investitore</h2>
+        <div class="row2">
+          <div><label>Investitore</label><select id="azInvestitore"></select></div>
+          <div><label>Azienda</label><select id="azAzienda" onchange="popolaSerieSelect('azSerie','azAzienda')"></select></div>
+        </div>
+        <div class="row2">
+          <div><label>Serie</label><select id="azSerie"></select></div>
+          <div><label>Quantità</label><input type="number" id="azQty" value="1" min="1" step="1"></div>
+        </div>
+        <div class="row2" style="margin-top:10px;">
+          <button class="btn-green" onclick="adminAssegnaAzioni('assegna')">Assegna (senza pagamento)</button>
+          <button class="btn-red" onclick="adminAssegnaAzioni('rimuovi')">Rimuovi (senza rimborso)</button>
+        </div>
+        <div class="muted" style="font-size:11px;margin-top:8px;">Questa operazione non muove liquidità: serve per correzioni, premi o penalità dirette sulle azioni.</div>
       </div>
 
       <div class="panel">
@@ -277,6 +372,8 @@
           <div><label>Saldo iniziale nuovi investitori</label><input type="number" id="cfgSaldoIniziale" step="1"></div>
           <div><label>Fattore impatto ordini (0-1)</label><input type="number" id="cfgImpact" step="0.05" min="0" max="1"></div>
         </div>
+        <label>Commissione di negoziazione % (su acquisti e vendite)</label>
+        <input type="number" id="cfgCommissione" step="0.05" min="0">
         <button class="btn-amber" style="margin-top:12px;" onclick="adminSalvaConfig()">Salva impostazioni</button>
         <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;">
           <label>Nuova password amministratore</label>
@@ -293,12 +390,40 @@
 
 <script type="module">
 /* ======================================================================
-   BORSA SIM — Mercato condiviso
+   BORSA SIM — Mercato condiviso — v2
    Vedi il manuale PDF per la spiegazione completa di formule e setup.
+
+   CHANGELOG v2 (rispetto alla versione precedente):
+   - FIX: i pulsanti "Registrati" e "Admin" nella schermata di login non
+     funzionavano per un id sbagliato nel codice: rotti, obbligavano a
+     rimuovere a mano la classe che nascondeva i moduli, con schermata di
+     login mostrata tutta insieme. Corretto: ora tutto è nascosto/mostrato
+     correttamente come previsto.
+   - FIX: era possibile comprare più azioni di quante ne fossero emesse.
+     Ora ogni serie di azioni ha un tetto massimo (azioni totali emesse)
+     e un contatore delle azioni già in mano agli investitori, aggiornato
+     in modo atomico ad ogni acquisto/vendita/assegnazione.
+   - FIX: comprando e rivendendo subito si guadagnava grazie all'impatto
+     di mercato (il prezzo saliva dopo l'acquisto e la vendita incassava
+     quel prezzo più alto). Ora l'esecuzione avviene al prezzo MEDIO tra
+     prima e dopo l'impatto (come in un vero book di negoziazione) più
+     un'eventuale commissione: il giro rapido compra/vendi risulta in
+     perdita, non in guadagno.
+   - NUOVO: grafico a torta con la distribuzione della proprietà per ogni
+     serie di azioni.
+   - NUOVO: l'admin può modificare un'azienda già quotata (nome, settore,
+     logo, azioni totali, liquidità, tendenza).
+   - NUOVO: logo per azienda (URL diretto a un'immagine, es. Imgur/Drive).
+   - NUOVO: l'admin può assegnare o togliere azioni a un investitore senza
+     movimento di liquidità (correzioni/premi/penalità).
+   - NUOVO: più serie di azioni indipendenti per la stessa azienda (es.
+     "Azioni Ordinarie" e "Azioni Privilegiate"), ciascuna con il proprio
+     prezzo, grafico e tetto massimo di azioni.
+   - NUOVO: colori del sito ispirati allo stemma del Comune di Trino.
    ====================================================================== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getDatabase, ref, get, set, update, push, onValue, runTransaction, child
+  getDatabase, ref, get, set, update, push, onValue, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 /* =====================================================================
@@ -331,14 +456,20 @@ if(!firebaseOk){
 }
 
 /* ---------------- stato locale ---------------- */
-let CONFIG = { valutaNome:"Diamanti", valutaSimbolo:"💎", saldoIniziale:100, impactFactor:0.5 };
-let AZIENDE = {};       // id -> oggetto azienda
+let CONFIG = { valutaNome:"Diamanti", valutaSimbolo:"💎", saldoIniziale:0, impactFactor:0.5, commissionePct:0.5 };
+let AZIENDE = {};       // id -> oggetto azienda (nome, settore, logoUrl, serie:{id:{...}})
 let INVESTITORI = {};   // username -> {saldo, portafoglio}
 let OPERAZIONI = [];    // log globale, array ordinato
 let sessione = null;    // {tipo:'investitore'|'admin', username}
 let aziendaSelezionata = null;
+let serieSelezionata = null;
+const caricamento = { config:false, aziende:false, investitori:false, operazioni:false };
+function segnaCaricato(chiave){ caricamento[chiave] = true; }
+function datiPronti(){ return Object.values(caricamento).every(Boolean); }
 
-/* ---------------- utilità ---------------- */
+const PALETTE = ['#b3162f','#4f8cff','#3ddc84','#e8a33d','#8a6528','#c77dff','#4dd0e1','#ff8fab','#9fd356','#f4a261'];
+
+/* ---------------- utilità generali ---------------- */
 async function sha256(testo){
   const enc = new TextEncoder().encode(testo);
   const buf = await crypto.subtle.digest('SHA-256', enc);
@@ -362,30 +493,131 @@ function hashFase(str){
 // piccola oscillazione ciclica (stesso valore per chiunque la calcoli, nello
 // stesso istante, perché dipende solo dall'orologio, non da un generatore
 // casuale locale). Vedi il manuale PDF, sezione formule.
-function prezzoCorrente(az, now){
+function prezzoCorrente(serie, seedId, now){
+  if(!serie) return 0;
   now = now || Date.now();
-  if(!az.attiva) return az.prezzoBase;
-  const giorni = (now - az.timestampBase) / 86400000;
-  const trend = Math.exp((az.tendenza||0) * giorni);
-  const fase = hashFase(az.id);
+  if(serie.attiva===false) return serie.prezzoBase;
+  const giorni = (now - serie.timestampBase) / 86400000;
+  const trend = Math.exp((serie.tendenza||0) * giorni);
+  const fase = hashFase(seedId);
   const periodoMs = 6*3600000; // ciclo di 6 ore
   const osc = 1 + 0.01*Math.sin((now/periodoMs)*2*Math.PI + fase);
-  return Math.max(0.01, az.prezzoBase * trend * osc);
+  return Math.max(0.01, serie.prezzoBase * trend * osc);
+}
+
+/* =====================================================================
+   SERIE DI AZIONI — compatibilità con le aziende create dalla versione
+   precedente (che avevano un'unica serie con i campi salvati direttamente
+   sull'azienda, senza il nodo "serie"). Queste aziende vengono lette come
+   se avessero già una serie "A" chiamata "Azioni Ordinarie"; la struttura
+   su Firebase viene aggiornata automaticamente al primo acquisto/vendita/
+   evento/modifica che le riguarda (vedi transazioneSuSerie).
+   ===================================================================== */
+function serieDiAzienda(az){
+  if(!az) return {};
+  const risultato = {};
+  if(az.prezzoBase!=null && !(az.serie && az.serie.A)){
+    risultato.A = {
+      nome: 'Azioni Ordinarie', prezzoBase: az.prezzoBase, prezzoIniziale: az.prezzoIniziale,
+      timestampBase: az.timestampBase, shareTotali: az.shareTotali||1000,
+      liquidita: az.liquidita||50000, tendenza: az.tendenza||0, attiva: az.attiva!==false,
+      azioniVendute: sommaPossedutoTotale(az.id,'A')
+    };
+  }
+  if(az.serie) Object.assign(risultato, az.serie);
+  return risultato;
+}
+function getQty(portafoglio, aziendaId, serieId){
+  if(!portafoglio || portafoglio[aziendaId]==null) return 0;
+  const v = portafoglio[aziendaId];
+  if(typeof v === 'number') return serieId==='A' ? v : 0; // formato vecchio: unica serie 'A'
+  return v[serieId] || 0;
+}
+function setQty(portafoglio, aziendaId, serieId, nuovaQty){
+  portafoglio = portafoglio || {};
+  const v = portafoglio[aziendaId];
+  let obj;
+  if(v && typeof v === 'object') obj = Object.assign({}, v);
+  else if(typeof v === 'number') obj = { A: v };
+  else obj = {};
+  if(nuovaQty>0) obj[serieId] = nuovaQty; else delete obj[serieId];
+  if(Object.keys(obj).length) portafoglio[aziendaId] = obj; else delete portafoglio[aziendaId];
+  return portafoglio;
+}
+function sommaPossedutoTotale(aziendaId, serieId){
+  let tot = 0;
+  Object.values(INVESTITORI).forEach(inv => tot += getQty(inv.portafoglio, aziendaId, serieId));
+  return tot;
+}
+function possessoPerInvestitore(aziendaId, serieId){
+  return Object.keys(INVESTITORI)
+    .map(u=>({u, qty:getQty(INVESTITORI[u].portafoglio, aziendaId, serieId)}))
+    .filter(x=>x.qty>0)
+    .sort((a,b)=>b.qty-a.qty);
+}
+function labelAzienda(o){
+  const az = AZIENDE[o.aziendaId];
+  if(!az) return o.aziendaId || '';
+  const serie = serieDiAzienda(az);
+  const chiavi = Object.keys(serie);
+  if(chiavi.length<=1) return az.nome;
+  const s = serie[o.serieId||'A'];
+  return az.nome + (s ? ' — '+s.nome : '');
+}
+function serieCorrente(){
+  const az = AZIENDE[aziendaSelezionata];
+  if(!az || !serieSelezionata) return null;
+  return serieDiAzienda(az)[serieSelezionata] || null;
+}
+
+// Esegue in modo atomico una modifica sul nodo di una specifica serie;
+// se la serie non esiste ancora su Firebase ma l'azienda ha ancora i
+// vecchi campi al primo livello (formato precedente), la crea al volo
+// copiando quei valori, calcolando le azioni già in circolazione dai
+// portafogli attualmente caricati.
+async function transazioneSuSerie(aziendaId, serieId, updater){
+  let erroreCatturato = null;
+  const risultato = await runTransaction(ref(db,'aziende/'+aziendaId+'/serie/'+serieId), node=>{
+    if(node===null || node===undefined){
+      const legacy = AZIENDE[aziendaId];
+      if(serieId==='A' && legacy && legacy.prezzoBase!=null && !(legacy.serie && legacy.serie.A)){
+        node = {
+          nome: 'Azioni Ordinarie', prezzoBase: legacy.prezzoBase, prezzoIniziale: legacy.prezzoIniziale,
+          timestampBase: legacy.timestampBase, shareTotali: legacy.shareTotali||1000,
+          liquidita: legacy.liquidita||50000, tendenza: legacy.tendenza||0,
+          attiva: legacy.attiva!==false, azioniVendute: sommaPossedutoTotale(aziendaId,'A')
+        };
+      } else {
+        erroreCatturato = new Error('Serie non trovata.');
+        return; // annulla la transazione
+      }
+    }
+    try{
+      return updater(node);
+    }catch(e){
+      erroreCatturato = e;
+      return; // annulla la transazione
+    }
+  });
+  if(erroreCatturato) throw erroreCatturato;
+  if(!risultato.committed) throw new Error('Operazione non riuscita: riprova.');
+  return risultato.snapshot.val();
 }
 
 /* =====================================================================
    LOGIN / REGISTRAZIONE
    ===================================================================== */
+const TAB_ID_LOGIN = {login:'tabLoginBtn', registrati:'tabRegBtn', admin:'tabAdminBtn'};
 window.mostraTab = function(t){
-  ['login','registrati','admin'].forEach(x=>{
-    document.getElementById('tab'+cap(x)+'Btn').classList.toggle('on', x===t);
+  Object.keys(TAB_ID_LOGIN).forEach(x=>{
+    const btn = document.getElementById(TAB_ID_LOGIN[x]);
+    if(btn) btn.classList.toggle('on', x===t);
   });
   document.getElementById('formLogin').classList.toggle('hidden', t!=='login');
   document.getElementById('formReg').classList.toggle('hidden', t!=='registrati');
   document.getElementById('formAdmin').classList.toggle('hidden', t!=='admin');
   document.getElementById('loginMsg').textContent = '';
 }
-function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
 
 function loginMsg(msg, ok){
   const el = document.getElementById('loginMsg');
@@ -472,30 +704,34 @@ window.cambiaTab = function(nome){
 function attaccaListener(){
   onValue(ref(db,'config'), snap=>{
     if(snap.exists()) CONFIG = Object.assign(CONFIG, snap.val());
+    segnaCaricato('config');
     renderTutto();
   });
   onValue(ref(db,'aziende'), snap=>{
     AZIENDE = snap.exists() ? snap.val() : {};
     Object.keys(AZIENDE).forEach(id => AZIENDE[id].id = id);
-    if(!aziendaSelezionata && Object.keys(AZIENDE).length) aziendaSelezionata = Object.keys(AZIENDE)[0];
+    if(!aziendaSelezionata && Object.keys(AZIENDE).length) selezionaAziendaInterno(Object.keys(AZIENDE)[0]);
+    segnaCaricato('aziende');
     renderTutto();
   });
   onValue(ref(db,'investitori'), snap=>{
     const val = snap.exists() ? snap.val() : {};
     INVESTITORI = {};
     Object.keys(val).forEach(u => { INVESTITORI[u] = val[u].pub || {saldo:0,portafoglio:{}}; });
+    segnaCaricato('investitori');
     renderTutto();
   });
   onValue(ref(db,'operazioni'), snap=>{
     const val = snap.exists() ? snap.val() : {};
     OPERAZIONI = Object.keys(val).map(k=>Object.assign({id:k}, val[k])).sort((a,b)=>b.timestamp-a.timestamp);
+    segnaCaricato('operazioni');
     renderTutto();
   });
 }
 function refreshPrezziLive(){ renderListaAziende(); renderQuotazione(); renderChart(); }
 
 function renderTutto(){
-  renderListaAziende(); renderQuotazione(); renderChart(); renderFeedGlobale();
+  renderListaAziende(); renderQuotazione(); renderChart(); renderSeriePills(); renderPieChart(); renderFeedGlobale();
   aggiornaStima(); popolaSelectAziende();
   if(!document.getElementById('tab-conto').classList.contains('hidden')) renderConto();
   if(!document.getElementById('tab-classifica').classList.contains('hidden')) renderClassifica();
@@ -505,50 +741,93 @@ function renderTutto(){
 /* =====================================================================
    RENDER: MERCATO
    ===================================================================== */
+function selezionaAziendaInterno(id){
+  aziendaSelezionata = id;
+  const serieMap = serieDiAzienda(AZIENDE[id]);
+  serieSelezionata = Object.keys(serieMap)[0] || null;
+}
+window.selezionaAzienda = function(id){
+  selezionaAziendaInterno(id);
+  renderQuotazione(); renderChart(); renderListaAziende(); renderSeriePills(); renderPieChart(); aggiornaStima();
+}
+window.selezionaSerie = function(sid){
+  serieSelezionata = sid;
+  renderQuotazione(); renderChart(); renderListaAziende(); renderSeriePills(); renderPieChart(); aggiornaStima();
+}
+
 function renderListaAziende(){
   const el = document.getElementById('listaAziende');
   const ids = Object.keys(AZIENDE);
   if(!ids.length){ el.innerHTML = '<span class="muted">Nessuna azienda ancora.</span>'; return; }
   el.innerHTML = ids.map(id=>{
     const az = AZIENDE[id];
-    const p = prezzoCorrente(az);
-    const varPct = ((p - az.prezzoIniziale) / az.prezzoIniziale) * 100;
+    const serieMap = serieDiAzienda(az);
+    const chiavi = Object.keys(serieMap);
+    const serieMostrata = (id===aziendaSelezionata && serieSelezionata && serieMap[serieSelezionata]) ? serieSelezionata : chiavi[0];
+    const serie = serieMostrata ? serieMap[serieMostrata] : null;
+    const p = serie ? prezzoCorrente(serie, id+'-'+serieMostrata) : 0;
+    const varPct = serie ? ((p - serie.prezzoIniziale) / serie.prezzoIniziale) * 100 : 0;
     const cls = varPct>=0.05?'up':varPct<=-0.05?'down':'flat';
+    const logo = az.logoUrl ? `<img src="${az.logoUrl}" class="co-logo" onerror="this.style.display='none'">` : '';
     return `<div class="co-item ${id===aziendaSelezionata?'active':''}" onclick="selezionaAzienda('${id}')">
-      <div><div class="nome">${az.nome}${az.attiva===false?' <span class="badge">sospesa</span>':''}</div><div class="settore">${az.settore||''}</div></div>
-      <div style="text-align:right;"><div style="font-weight:600;">${fmt(p)}</div><div class="${cls}" style="font-size:11px;">${varPct>=0?'+':''}${varPct.toFixed(2)}%</div></div>
+      <div style="display:flex;align-items:center;gap:8px;">${logo}<div><div class="nome">${az.nome}${chiavi.length>1?' <span class="badge">'+chiavi.length+' serie</span>':''}${az.attiva===false?' <span class="badge">sospesa</span>':''}</div><div class="settore">${az.settore||''}</div></div></div>
+      <div style="text-align:right;"><div style="font-weight:600;">${serie?fmt(p):'—'}</div><div class="${cls}" style="font-size:11px;">${serie?((varPct>=0?'+':'')+varPct.toFixed(2)+'%'):''}</div></div>
     </div>`;
   }).join('');
 }
-window.selezionaAzienda = function(id){ aziendaSelezionata = id; renderQuotazione(); renderChart(); renderListaAziende(); aggiornaStima(); }
+
+function renderSeriePills(){
+  const wrap = document.getElementById('seriePills');
+  if(!wrap) return;
+  const az = AZIENDE[aziendaSelezionata];
+  if(!az){ wrap.classList.add('hidden'); wrap.innerHTML=''; return; }
+  const serieMap = serieDiAzienda(az);
+  const chiavi = Object.keys(serieMap);
+  if(chiavi.length<=1){ wrap.classList.add('hidden'); wrap.innerHTML=''; return; }
+  wrap.classList.remove('hidden');
+  wrap.innerHTML = chiavi.map(sid=>`<button class="${sid===serieSelezionata?'on':''}" onclick="selezionaSerie('${sid}')">${serieMap[sid].nome||sid}</button>`).join('');
+}
 
 function renderQuotazione(){
   const az = AZIENDE[aziendaSelezionata];
+  const logoEl = document.getElementById('qLogo');
   if(!az){
     document.getElementById('qName').textContent = "Seleziona un'azienda";
     document.getElementById('qSector').textContent = '—';
     document.getElementById('qPrice').textContent = '—';
     document.getElementById('qChange').textContent = '';
+    if(logoEl) logoEl.classList.add('hidden');
     return;
   }
-  const p = prezzoCorrente(az);
-  const varPct = ((p - az.prezzoIniziale)/az.prezzoIniziale)*100;
-  document.getElementById('qName').textContent = az.nome;
+  if(logoEl){
+    if(az.logoUrl){ logoEl.src = az.logoUrl; logoEl.classList.remove('hidden'); logoEl.onerror = ()=>logoEl.classList.add('hidden'); }
+    else logoEl.classList.add('hidden');
+  }
+  const serieMap = serieDiAzienda(az);
+  const serie = serieSelezionata ? serieMap[serieSelezionata] : null;
+  document.getElementById('qName').textContent = az.nome + (serie && Object.keys(serieMap).length>1 ? ' · '+serie.nome : '');
   document.getElementById('qSector').textContent = az.settore || '';
+  if(!serie){
+    document.getElementById('qPrice').textContent = '—';
+    document.getElementById('qChange').textContent = '';
+    return;
+  }
+  const p = prezzoCorrente(serie, aziendaSelezionata+'-'+serieSelezionata);
+  const varPct = ((p - serie.prezzoIniziale)/serie.prezzoIniziale)*100;
   document.getElementById('qPrice').textContent = fmt(p);
   const ch = document.getElementById('qChange');
   ch.textContent = (varPct>=0?'▲ +':'▼ ')+varPct.toFixed(2)+'%';
   ch.className = 'quote-change ' + (varPct>=0?'up':'down');
 }
 
-function storicoPrezzi(az){
+function storicoPrezzi(aziendaId, serieId, serie){
   // costruisce la serie storica REALE dai log (nessun valore inventato):
-  // prezzo iniziale + prezzo dopo ogni evento/scambio registrato per l'azienda
-  const punti = [{ t: az.creato || 0, p: az.prezzoIniziale }];
-  OPERAZIONI.filter(o=>o.aziendaId===az.id && o.prezzoDopo!=null)
+  // prezzo iniziale + prezzo dopo ogni evento/scambio registrato per la serie
+  const punti = [{ t: serie.timestampBase || 0, p: serie.prezzoIniziale }];
+  OPERAZIONI.filter(o=>o.aziendaId===aziendaId && (o.serieId||'A')===serieId && o.prezzoDopo!=null)
     .sort((a,b)=>a.timestamp-b.timestamp)
     .forEach(o=> punti.push({ t:o.timestamp, p:o.prezzoDopo }));
-  punti.push({ t: Date.now(), p: prezzoCorrente(az) });
+  punti.push({ t: Date.now(), p: prezzoCorrente(serie, aziendaId+'-'+serieId) });
   return punti;
 }
 
@@ -557,15 +836,15 @@ function renderChart(){
   const ctx = canvas.getContext('2d');
   const w = canvas.width, h = canvas.height;
   ctx.clearRect(0,0,w,h);
-  const az = AZIENDE[aziendaSelezionata];
-  if(!az){ ctx.fillStyle='#3a4048'; ctx.font='13px IBM Plex Mono'; ctx.fillText('Nessun dato da visualizzare.',20,h/2); return; }
-  const dati = storicoPrezzi(az).slice(-60);
+  const serie = serieCorrente();
+  if(!serie){ ctx.fillStyle='#8a7a7d'; ctx.font='13px IBM Plex Mono'; ctx.fillText('Nessun dato da visualizzare.',20,h/2); return; }
+  const dati = storicoPrezzi(aziendaSelezionata, serieSelezionata, serie).slice(-60);
   const prezzi = dati.map(d=>d.p);
   const min = Math.min(...prezzi), max = Math.max(...prezzi);
   const pad = (max-min)*0.12 || max*0.05 || 1;
   const yMin = min-pad, yMax = max+pad;
   const mL=58,mB=20,mT=10,mR=12, plotW=w-mL-mR, plotH=h-mT-mB;
-  ctx.strokeStyle='#1c222a'; ctx.lineWidth=1; ctx.font='10px IBM Plex Mono'; ctx.fillStyle='#5b6470';
+  ctx.strokeStyle='#2a2124'; ctx.lineWidth=1; ctx.font='10px IBM Plex Mono'; ctx.fillStyle='#8a7a7d';
   for(let i=0;i<=4;i++){
     const y = mT+(plotH/4)*i;
     ctx.beginPath(); ctx.moveTo(mL,y); ctx.lineTo(w-mR,y); ctx.stroke();
@@ -586,82 +865,130 @@ function renderChart(){
   ctx.fillStyle = grad; ctx.fill();
 }
 
+function renderPieChart(){
+  const canvas = document.getElementById('pieChart');
+  const legend = document.getElementById('pieLegend');
+  if(!canvas || !legend) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const az = AZIENDE[aziendaSelezionata];
+  const serie = serieCorrente();
+  if(!az || !serie){ legend.innerHTML = '<span class="muted">Seleziona un\'azienda.</span>'; return; }
+  const shareTotali = serie.shareTotali||0;
+  const titolari = possessoPerInvestitore(aziendaSelezionata, serieSelezionata);
+  const totalePossedute = titolari.reduce((s,t)=>s+t.qty,0);
+  const flottante = Math.max(0, shareTotali - totalePossedute);
+  if(shareTotali<=0 || (!titolari.length && flottante<=0)){
+    legend.innerHTML = '<span class="muted">Nessun dato di proprietà per questa serie.</span>';
+    return;
+  }
+  const fette = titolari.map((t,i)=>({label:t.u, qty:t.qty, colore:PALETTE[i%PALETTE.length]}));
+  if(flottante>0) fette.push({label:'Non ancora assegnate', qty:flottante, colore:'#4a3e42'});
+  const cx=canvas.width/2, cy=canvas.height/2, r=Math.min(cx,cy)-4;
+  let inizio = -Math.PI/2;
+  fette.forEach(f=>{
+    const angolo = (f.qty/shareTotali)*2*Math.PI;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,inizio,inizio+angolo);
+    ctx.closePath(); ctx.fillStyle=f.colore; ctx.fill();
+    inizio += angolo;
+  });
+  legend.innerHTML = fette.map(f=>`<div class="legend-item"><span class="dot" style="background:${f.colore}"></span>${f.label} — ${((f.qty/shareTotali)*100).toFixed(1)}% (${f.qty})</div>`).join('');
+}
+
 function renderFeedGlobale(){
   const el = document.getElementById('feedGlobale');
   if(!OPERAZIONI.length){ el.innerHTML = '<div class="muted">Nessuna attività ancora.</div>'; return; }
   el.innerHTML = OPERAZIONI.slice(0,50).map(o=>`<div>${riassuntoOperazione(o)}</div>`).join('');
 }
 function riassuntoOperazione(o){
-  const azNome = (AZIENDE[o.aziendaId]||{}).nome || o.aziendaId || '';
   const data = new Date(o.timestamp).toLocaleString('it-IT');
-  if(o.tipo==='buy') return `<b>${o.investitore}</b> ha acquistato ${o.quantita} × ${azNome} a ${fmt(o.prezzoEsecuzione)} <span class="muted">(${data})</span>`;
-  if(o.tipo==='sell') return `<b>${o.investitore}</b> ha venduto ${o.quantita} × ${azNome} a ${fmt(o.prezzoEsecuzione)} <span class="muted">(${data})</span>`;
-  if(o.tipo==='evento') return `<b>Evento — ${azNome}:</b> ${o.motivo} (${o.variazionePct>=0?'+':''}${o.variazionePct.toFixed(2)}%) <span class="muted">(${data})</span>`;
-  if(o.tipo==='dividendo') return `<b>Dividendo — ${azNome}:</b> distribuiti ${fmt(o.importoTotale)} agli azionisti <span class="muted">(${data})</span>`;
+  if(o.tipo==='buy') return `<b>${o.investitore}</b> ha acquistato ${o.quantita} × ${labelAzienda(o)} a ${fmt(o.prezzoEsecuzione)} <span class="muted">(${data})</span>`;
+  if(o.tipo==='sell') return `<b>${o.investitore}</b> ha venduto ${o.quantita} × ${labelAzienda(o)} a ${fmt(o.prezzoEsecuzione)} <span class="muted">(${data})</span>`;
+  if(o.tipo==='evento') return `<b>Evento — ${labelAzienda(o)}:</b> ${o.motivo} (${o.variazionePct>=0?'+':''}${o.variazionePct.toFixed(2)}%) <span class="muted">(${data})</span>`;
+  if(o.tipo==='dividendo') return `<b>Dividendo — ${labelAzienda(o)}:</b> distribuiti ${fmt(o.importoTotale)} agli azionisti <span class="muted">(${data})</span>`;
   if(o.tipo==='admin-rettifica') return `<b>Admin:</b> saldo di ${o.investitore} modificato (${o.note||''}) <span class="muted">(${data})</span>`;
+  if(o.tipo==='admin-azioni') return `<b>Admin:</b> ${o.direzione==='assegna'?'assegnate':'rimosse'} ${o.quantita} × ${labelAzienda(o)} a/da <b>${o.investitore}</b> <span class="muted">(${data})</span>`;
   return `${o.tipo} <span class="muted">(${data})</span>`;
 }
 
 /* =====================================================================
-   ORDINI (acquisto/vendita) — con transazione Firebase, nessun caso
+   ORDINI (acquisto/vendita)
    ===================================================================== */
 window.aggiornaStima = function(){
-  const az = AZIENDE[aziendaSelezionata];
+  const serie = serieCorrente();
   const qty = parseInt(document.getElementById('inQty').value)||0;
-  document.getElementById('stimaCosto').value = az ? fmt(qty*prezzoCorrente(az)) : '—';
+  if(!serie || !qty){ document.getElementById('stimaCosto').value = '—'; return; }
+  const p = prezzoCorrente(serie, aziendaSelezionata+'-'+serieSelezionata);
+  const impatto = (CONFIG.impactFactor||0.5) * ((p*qty)/(serie.liquidita||50000));
+  const pEsecuzioneStimato = (p + p*(1+impatto))/2; // stima indicativa (per la vendita il segno si inverte all'esecuzione)
+  const costo = pEsecuzioneStimato*qty*(1+(CONFIG.commissionePct||0)/100);
+  document.getElementById('stimaCosto').value = fmt(costo);
 }
 
 window.ordine = async function(tipo){
   if(sessione.tipo==='admin'){ mostraToast('Accedi come investitore per operare, oppure usa "opera per conto di" nel pannello Admin.'); return; }
-  const az = AZIENDE[aziendaSelezionata];
-  if(!az){ mostraToast("Seleziona prima un'azienda."); return; }
+  if(!datiPronti()){ mostraToast('Dati ancora in caricamento, riprova tra un istante.'); return; }
+  const serie = serieCorrente();
+  if(!serie){ mostraToast("Seleziona prima un'azienda e una serie."); return; }
   const qty = parseInt(document.getElementById('inQty').value);
   if(!qty || qty<=0){ mostraToast('Quantità non valida.'); return; }
   try{
-    await eseguiOrdine(sessione.username, az.id, qty, tipo);
+    await eseguiOrdine(sessione.username, aziendaSelezionata, serieSelezionata, qty, tipo);
     mostraToast(tipo==='buy' ? 'Acquisto eseguito.' : 'Vendita eseguita.');
   }catch(e){ mostraToast(e.message || 'Operazione non riuscita.'); }
 }
 
-async function eseguiOrdine(username, aziendaId, qty, tipo){
+async function eseguiOrdine(username, aziendaId, serieId, qty, tipo){
   const invSnap = await get(ref(db,'investitori/'+username+'/pub'));
   if(!invSnap.exists()) throw new Error('Investitore non trovato.');
   const inv = invSnap.val();
-  const possedute = (inv.portafoglio && inv.portafoglio[aziendaId]) || 0;
+  const possedute = getQty(inv.portafoglio, aziendaId, serieId);
   if(tipo==='sell' && qty>possedute) throw new Error('Non possiedi abbastanza azioni.');
 
-  let prezzoEsecuzione, prezzoDopo;
-  await runTransaction(ref(db,'aziende/'+aziendaId), az=>{
-    if(!az) return az;
-    az.id = aziendaId;
-    const pAttuale = prezzoCorrente(az);
-    const valoreOrdine = pAttuale*qty;
-    if(tipo==='buy' && valoreOrdine>inv.saldo) throw new Error('Liquidità insufficiente.');
-    const impatto = (CONFIG.impactFactor||0.5) * (valoreOrdine/(az.liquidita||50000));
-    prezzoEsecuzione = pAttuale;
-    prezzoDopo = tipo==='buy' ? pAttuale*(1+impatto) : pAttuale*(1-impatto);
-    az.prezzoBase = Math.max(0.01, prezzoDopo);
-    az.timestampBase = Date.now();
-    return az;
+  let prezzoEsecuzione, prezzoDopo, commissione;
+  await transazioneSuSerie(aziendaId, serieId, serie=>{
+    const pAttuale = prezzoCorrente(serie, aziendaId+'-'+serieId);
+    const valoreOrdineMid = pAttuale*qty;
+    const impatto = (CONFIG.impactFactor||0.5) * (valoreOrdineMid/(serie.liquidita||50000));
+    const pDopoImpatto = tipo==='buy' ? pAttuale*(1+impatto) : pAttuale*(1-impatto);
+    // Prezzo di esecuzione = MEDIA tra il prezzo di partenza e quello dopo
+    // l'impatto: chi negozia "si muove contro" il proprio stesso ordine,
+    // esattamente come in un vero book. Questo elimina la possibilità di
+    // guadagnare comprando e rivendendo immediatamente.
+    const pEsecuzione = (pAttuale+pDopoImpatto)/2;
+    const costoOrdine = pEsecuzione*qty;
+    const commissioneOrdine = costoOrdine*((CONFIG.commissionePct||0)/100);
+    if(tipo==='buy'){
+      const disponibili = (serie.shareTotali||0) - (serie.azioniVendute||0);
+      if(qty>disponibili) throw new Error('Disponibili solo '+disponibili+' azioni per questa serie.');
+      if(costoOrdine+commissioneOrdine > inv.saldo) throw new Error('Liquidità insufficiente (commissione inclusa).');
+    }
+    prezzoEsecuzione = pEsecuzione;
+    prezzoDopo = Math.max(0.01, pDopoImpatto);
+    commissione = commissioneOrdine;
+    serie.prezzoBase = prezzoDopo;
+    serie.timestampBase = Date.now();
+    serie.azioniVendute = Math.max(0, (serie.azioniVendute||0) + (tipo==='buy'?qty:-qty));
+    return serie;
   });
 
   const valoreOrdine = prezzoEsecuzione*qty;
+  const movimentoSaldo = tipo==='buy' ? -(valoreOrdine+commissione) : (valoreOrdine-commissione);
+
   await runTransaction(ref(db,'investitori/'+username+'/pub'), pub=>{
     if(!pub) return pub;
     pub.portafoglio = pub.portafoglio || {};
-    if(tipo==='buy'){
-      pub.saldo = pub.saldo - valoreOrdine;
-      pub.portafoglio[aziendaId] = (pub.portafoglio[aziendaId]||0) + qty;
-    } else {
-      pub.saldo = pub.saldo + valoreOrdine;
-      pub.portafoglio[aziendaId] = (pub.portafoglio[aziendaId]||0) - qty;
-    }
+    const attuali = getQty(pub.portafoglio, aziendaId, serieId);
+    const nuove = tipo==='buy' ? attuali+qty : attuali-qty;
+    setQty(pub.portafoglio, aziendaId, serieId, Math.max(0,nuove));
+    pub.saldo = (pub.saldo||0) + movimentoSaldo;
     return pub;
   });
 
   await push(ref(db,'operazioni'), {
-    tipo, investitore:username, aziendaId, quantita:qty,
-    prezzoEsecuzione, prezzoDopo, timestamp: Date.now()
+    tipo, investitore:username, aziendaId, serieId, quantita:qty,
+    prezzoEsecuzione, prezzoDopo, commissione, timestamp: Date.now()
   });
 }
 
@@ -672,17 +999,26 @@ function renderConto(){
   if(sessione.tipo==='admin') return;
   const inv = INVESTITORI[sessione.username] || {saldo:0,portafoglio:{}};
   let valorePos = 0;
-  const righe = Object.keys(inv.portafoglio||{}).filter(id=>inv.portafoglio[id]>0).map(id=>{
-    const az = AZIENDE[id]; if(!az) return '';
-    const qty = inv.portafoglio[id];
-    const val = qty*prezzoCorrente(az);
-    valorePos += val;
-    return `<tr><td>${az.nome}</td><td>${qty}</td><td>${fmt(val)}</td></tr>`;
-  }).join('');
+  const righe = [];
+  Object.keys(AZIENDE).forEach(aid=>{
+    const az = AZIENDE[aid];
+    const serieMap = serieDiAzienda(az);
+    const chiavi = Object.keys(serieMap);
+    chiavi.forEach(sid=>{
+      const qty = getQty(inv.portafoglio, aid, sid);
+      if(qty>0){
+        const serie = serieMap[sid];
+        const val = qty*prezzoCorrente(serie, aid+'-'+sid);
+        valorePos += val;
+        const labelSerie = chiavi.length>1 ? ' — '+serie.nome : '';
+        righe.push(`<tr><td>${az.nome}${labelSerie}</td><td>${qty}</td><td>${fmt(val)}</td></tr>`);
+      }
+    });
+  });
   document.getElementById('ctSaldo').textContent = fmt(inv.saldo||0);
   document.getElementById('ctValore').textContent = fmt(valorePos);
   document.getElementById('ctTotale').textContent = fmt((inv.saldo||0)+valorePos);
-  document.getElementById('ctPosizioni').innerHTML = righe || '<tr><td colspan="3" class="muted">Nessuna posizione.</td></tr>';
+  document.getElementById('ctPosizioni').innerHTML = righe.length ? righe.join('') : '<tr><td colspan="3" class="muted">Nessuna posizione.</td></tr>';
   const mie = OPERAZIONI.filter(o=>o.investitore===sessione.username).slice(0,30);
   document.getElementById('ctStorico').innerHTML = mie.length ? mie.map(o=>`<div>${riassuntoOperazione(o)}</div>`).join('') : '<div class="muted">Nessuna operazione ancora.</div>';
 }
@@ -693,8 +1029,12 @@ function renderConto(){
 function patrimonioDi(username){
   const inv = INVESTITORI[username] || {saldo:0,portafoglio:{}};
   let val = inv.saldo||0;
-  Object.keys(inv.portafoglio||{}).forEach(id=>{
-    const az = AZIENDE[id]; if(az) val += (inv.portafoglio[id]||0)*prezzoCorrente(az);
+  Object.keys(AZIENDE).forEach(aid=>{
+    const serieMap = serieDiAzienda(AZIENDE[aid]);
+    Object.keys(serieMap).forEach(sid=>{
+      const qty = getQty(inv.portafoglio, aid, sid);
+      if(qty>0) val += qty*prezzoCorrente(serieMap[sid], aid+'-'+sid);
+    });
   });
   return val;
 }
@@ -706,14 +1046,23 @@ function renderClassifica(){
 }
 window.dettaglioInvestitore = function(u){
   const inv = INVESTITORI[u] || {saldo:0,portafoglio:{}};
-  let righe = Object.keys(inv.portafoglio||{}).filter(id=>inv.portafoglio[id]>0).map(id=>{
-    const az = AZIENDE[id]; if(!az) return '';
-    return `<tr><td>${az.nome}</td><td>${inv.portafoglio[id]}</td><td>${fmt(inv.portafoglio[id]*prezzoCorrente(az))}</td></tr>`;
-  }).join('') || '<tr><td colspan="3" class="muted">Nessuna posizione.</td></tr>';
+  const righe = [];
+  Object.keys(AZIENDE).forEach(aid=>{
+    const az = AZIENDE[aid];
+    const serieMap = serieDiAzienda(az);
+    const chiavi = Object.keys(serieMap);
+    chiavi.forEach(sid=>{
+      const qty = getQty(inv.portafoglio, aid, sid);
+      if(qty>0){
+        const labelSerie = chiavi.length>1 ? ' — '+serieMap[sid].nome : '';
+        righe.push(`<tr><td>${az.nome}${labelSerie}</td><td>${qty}</td><td>${fmt(qty*prezzoCorrente(serieMap[sid], aid+'-'+sid))}</td></tr>`);
+      }
+    });
+  });
   apriModal(`Profilo di ${u}`, `
     <p>Liquidità: <b>${fmt(inv.saldo||0)}</b></p>
     <p>Patrimonio totale: <b>${fmt(patrimonioDi(u))}</b></p>
-    <table><thead><tr><th>Azienda</th><th>Quantità</th><th>Valore</th></tr></thead><tbody>${righe}</tbody></table>
+    <table><thead><tr><th>Azienda</th><th>Quantità</th><th>Valore</th></tr></thead><tbody>${righe.join('') || '<tr><td colspan="3" class="muted">Nessuna posizione.</td></tr>'}</tbody></table>
   `);
 }
 
@@ -732,18 +1081,39 @@ window.chiudiModal = function(){ document.getElementById('modalRoot').innerHTML=
    ADMIN
    ===================================================================== */
 function popolaSelectAziende(){
-  ['evAzienda','dvAzienda'].forEach(selId=>{
+  ['evAzienda','dvAzienda','asAzienda','meAzienda','azAzienda'].forEach(selId=>{
     const sel = document.getElementById(selId);
     if(!sel) return;
     const cur = sel.value;
     sel.innerHTML = Object.keys(AZIENDE).map(id=>`<option value="${id}">${AZIENDE[id].nome}</option>`).join('');
-    if(cur) sel.value = cur;
+    if(cur && AZIENDE[cur]) sel.value = cur;
   });
+  [['evAzienda','evSerie'],['dvAzienda','dvSerie'],['meAzienda','meSerie'],['azAzienda','azSerie']].forEach(([a,s])=>{
+    if(document.getElementById(a) && document.getElementById(s)) popolaSerieSelect(s,a);
+  });
+  const selInv = document.getElementById('azInvestitore');
+  if(selInv){
+    const curInv = selInv.value;
+    selInv.innerHTML = Object.keys(INVESTITORI).map(u=>`<option value="${u}">${u}</option>`).join('');
+    if(curInv && INVESTITORI[curInv]) selInv.value = curInv;
+  }
+}
+window.popolaSerieSelect = function(serieSelId, aziendaSelId){
+  const selAz = document.getElementById(aziendaSelId);
+  const selSerie = document.getElementById(serieSelId);
+  if(!selAz||!selSerie) return;
+  const az = AZIENDE[selAz.value];
+  const cur = selSerie.value;
+  const serie = az ? serieDiAzienda(az) : {};
+  selSerie.innerHTML = Object.keys(serie).map(sid=>`<option value="${sid}">${serie[sid].nome||sid}</option>`).join('');
+  if(cur && serie[cur]) selSerie.value = cur;
 }
 
 window.adminCreaAzienda = async function(){
   const nome = document.getElementById('acNome').value.trim();
   const settore = document.getElementById('acSettore').value.trim() || 'Generico';
+  const logoUrl = document.getElementById('acLogo').value.trim();
+  const nomeSerie = document.getElementById('acSerieNome').value.trim() || 'Azioni Ordinarie';
   const prezzo = parseFloat(document.getElementById('acPrezzo').value);
   const shareTotali = parseInt(document.getElementById('acShare').value);
   const liquidita = parseFloat(document.getElementById('acLiquidita').value);
@@ -751,54 +1121,131 @@ window.adminCreaAzienda = async function(){
   if(!nome || !prezzo || prezzo<=0){ mostraToast('Nome e prezzo iniziale sono obbligatori.'); return; }
   const nuovaRef = push(ref(db,'aziende'));
   await set(nuovaRef, {
-    nome, settore, prezzoBase: prezzo, prezzoIniziale: prezzo,
-    timestampBase: Date.now(), creato: Date.now(),
-    shareTotali: shareTotali||1000, liquidita: liquidita||50000,
-    tendenza: isNaN(tendenza)?0:tendenza, attiva: true
+    nome, settore, logoUrl: logoUrl||null, creato: Date.now(), attiva: true,
+    serie: { A: {
+      nome: nomeSerie, prezzoBase: prezzo, prezzoIniziale: prezzo, timestampBase: Date.now(),
+      shareTotali: shareTotali||1000, azioniVendute: 0,
+      liquidita: liquidita||50000, tendenza: isNaN(tendenza)?0:tendenza, attiva: true
+    }}
   });
   document.getElementById('acNome').value=''; document.getElementById('acSettore').value='';
+  document.getElementById('acLogo').value=''; document.getElementById('acPrezzo').value='10'; document.getElementById('acShare').value='1000';
   mostraToast('Azienda quotata.');
+}
+
+window.adminAggiungiSerie = async function(){
+  const id = document.getElementById('asAzienda').value;
+  const nome = document.getElementById('asNome').value.trim() || 'Nuova serie';
+  const prezzo = parseFloat(document.getElementById('asPrezzo').value);
+  const shareTotali = parseInt(document.getElementById('asShare').value);
+  const liquidita = parseFloat(document.getElementById('asLiquidita').value);
+  const tendenza = parseFloat(document.getElementById('asTendenza').value)/100;
+  if(!id){ mostraToast("Seleziona un'azienda."); return; }
+  if(!prezzo||prezzo<=0){ mostraToast('Prezzo iniziale non valido.'); return; }
+  const nuovaSerieRef = push(ref(db,'aziende/'+id+'/serie'));
+  await set(nuovaSerieRef, {
+    nome, prezzoBase:prezzo, prezzoIniziale:prezzo, timestampBase:Date.now(),
+    shareTotali: shareTotali||1000, azioniVendute:0,
+    liquidita: liquidita||50000, tendenza: isNaN(tendenza)?0:tendenza, attiva:true
+  });
+  document.getElementById('asNome').value=''; document.getElementById('asPrezzo').value='';
+  mostraToast('Nuova serie aggiunta.');
+}
+
+window.caricaModificaAzienda = function(){
+  const id = document.getElementById('meAzienda').value;
+  const az = AZIENDE[id]; if(!az) return;
+  document.getElementById('meNome').value = az.nome||'';
+  document.getElementById('meSettore').value = az.settore||'';
+  document.getElementById('meLogo').value = az.logoUrl||'';
+  popolaSerieSelect('meSerie','meAzienda');
+  caricaSerieModifica();
+}
+window.caricaSerieModifica = function(){
+  const id = document.getElementById('meAzienda').value;
+  const serieId = document.getElementById('meSerie').value;
+  const az = AZIENDE[id]; if(!az) return;
+  const serie = serieDiAzienda(az)[serieId]; if(!serie) return;
+  document.getElementById('meSerieNome').value = serie.nome||'';
+  document.getElementById('meShareTotali').value = serie.shareTotali||0;
+  document.getElementById('meLiquidita').value = serie.liquidita||0;
+  document.getElementById('meTendenza').value = ((serie.tendenza||0)*100).toFixed(2);
+}
+window.adminSalvaAzienda = async function(){
+  const id = document.getElementById('meAzienda').value;
+  if(!id){ mostraToast("Seleziona un'azienda."); return; }
+  const nome = document.getElementById('meNome').value.trim();
+  const settore = document.getElementById('meSettore').value.trim();
+  const logoUrl = document.getElementById('meLogo').value.trim();
+  if(!nome){ mostraToast('Il nome è obbligatorio.'); return; }
+  await update(ref(db,'aziende/'+id), { nome, settore: settore||'Generico', logoUrl: logoUrl||null });
+  mostraToast('Dati azienda aggiornati.');
+}
+window.adminSalvaSerie = async function(){
+  const id = document.getElementById('meAzienda').value;
+  const serieId = document.getElementById('meSerie').value;
+  if(!id||!serieId){ mostraToast("Seleziona azienda e serie."); return; }
+  const nome = document.getElementById('meSerieNome').value.trim() || 'Azioni Ordinarie';
+  const shareTotali = parseInt(document.getElementById('meShareTotali').value);
+  const liquidita = parseFloat(document.getElementById('meLiquidita').value);
+  const tendenza = parseFloat(document.getElementById('meTendenza').value)/100;
+  if(!shareTotali||shareTotali<=0){ mostraToast('Azioni totali non valide.'); return; }
+  try{
+    await transazioneSuSerie(id, serieId, serie=>{
+      if(shareTotali < (serie.azioniVendute||0)) throw new Error('Non puoi scendere sotto le '+(serie.azioniVendute||0)+' azioni già in circolazione.');
+      serie.nome = nome;
+      serie.shareTotali = shareTotali;
+      serie.liquidita = liquidita>0 ? liquidita : (serie.liquidita||50000);
+      serie.tendenza = isNaN(tendenza) ? (serie.tendenza||0) : tendenza;
+      return serie;
+    });
+    mostraToast('Serie aggiornata.');
+  }catch(e){ mostraToast(e.message||'Operazione non riuscita.'); }
 }
 
 window.adminApplicaEvento = async function(){
   const id = document.getElementById('evAzienda').value;
+  const serieId = document.getElementById('evSerie').value;
   const tipo = document.getElementById('evTipo').value;
   const valore = parseFloat(document.getElementById('evValore').value);
   const motivo = document.getElementById('evMotivo').value.trim();
-  if(!id){ mostraToast("Seleziona un'azienda."); return; }
+  if(!id||!serieId){ mostraToast("Seleziona azienda e serie."); return; }
   if(isNaN(valore)){ mostraToast('Inserisci un valore.'); return; }
   if(!motivo){ mostraToast("Il motivo è obbligatorio: resta nello storico dell'azienda."); return; }
 
-  let prezzoPrima, prezzoDopo, variazionePct;
-  await runTransaction(ref(db,'aziende/'+id), az=>{
-    if(!az) return az;
-    az.id = id;
-    prezzoPrima = prezzoCorrente(az);
-    prezzoDopo = tipo==='pct' ? prezzoPrima*(1+valore/100) : valore;
-    prezzoDopo = Math.max(0.01, prezzoDopo);
-    variazionePct = ((prezzoDopo-prezzoPrima)/prezzoPrima)*100;
-    az.prezzoBase = prezzoDopo;
-    az.timestampBase = Date.now();
-    return az;
-  });
-  await push(ref(db,'operazioni'), { tipo:'evento', aziendaId:id, motivo, prezzoDopo, variazionePct, timestamp: Date.now() });
+  let prezzoDopo, variazionePct;
+  try{
+    await transazioneSuSerie(id, serieId, serie=>{
+      const prezzoPrima = prezzoCorrente(serie, id+'-'+serieId);
+      let pDopo = tipo==='pct' ? prezzoPrima*(1+valore/100) : valore;
+      pDopo = Math.max(0.01, pDopo);
+      variazionePct = ((pDopo-prezzoPrima)/prezzoPrima)*100;
+      prezzoDopo = pDopo;
+      serie.prezzoBase = pDopo;
+      serie.timestampBase = Date.now();
+      return serie;
+    });
+  }catch(e){ mostraToast(e.message||'Operazione non riuscita.'); return; }
+  await push(ref(db,'operazioni'), { tipo:'evento', aziendaId:id, serieId, motivo, prezzoDopo, variazionePct, timestamp: Date.now() });
   document.getElementById('evValore').value=''; document.getElementById('evMotivo').value='';
   mostraToast('Evento applicato.');
 }
 
 window.adminDistribuisciDividendo = async function(){
   const id = document.getElementById('dvAzienda').value;
+  const serieId = document.getElementById('dvSerie').value;
   const importo = parseFloat(document.getElementById('dvImporto').value);
   const az = AZIENDE[id];
-  if(!az){ mostraToast("Seleziona un'azienda."); return; }
+  if(!az||!serieId){ mostraToast("Seleziona azienda e serie."); return; }
+  const serie = serieDiAzienda(az)[serieId];
+  if(!serie){ mostraToast('Serie non trovata.'); return; }
   if(!importo || importo<=0){ mostraToast('Inserisci un importo valido.'); return; }
-  const shareTotali = az.shareTotali || 1000;
+  const shareTotali = serie.shareTotali || 1000;
 
-  const utenti = Object.keys(INVESTITORI).filter(u => (INVESTITORI[u].portafoglio||{})[id] > 0);
-  if(!utenti.length){ mostraToast('Nessun azionista possiede quote di questa azienda.'); return; }
+  const beneficiari = possessoPerInvestitore(id, serieId);
+  if(!beneficiari.length){ mostraToast('Nessun azionista possiede quote di questa serie.'); return; }
 
-  for(const u of utenti){
-    const qty = INVESTITORI[u].portafoglio[id];
+  for(const {u, qty} of beneficiari){
     const quota = (qty/shareTotali) * importo;
     await runTransaction(ref(db,'investitori/'+u+'/pub'), pub=>{
       if(!pub) return pub;
@@ -806,9 +1253,44 @@ window.adminDistribuisciDividendo = async function(){
       return pub;
     });
   }
-  await push(ref(db,'operazioni'), { tipo:'dividendo', aziendaId:id, importoTotale:importo, timestamp: Date.now() });
+  await push(ref(db,'operazioni'), { tipo:'dividendo', aziendaId:id, serieId, importoTotale:importo, timestamp: Date.now() });
   document.getElementById('dvImporto').value='';
-  mostraToast('Dividendo distribuito a '+utenti.length+' azionisti.');
+  mostraToast('Dividendo distribuito a '+beneficiari.length+' azionisti.');
+}
+
+window.adminAssegnaAzioni = async function(direzione){
+  if(!datiPronti()){ mostraToast('Dati ancora in caricamento, riprova tra un istante.'); return; }
+  const username = document.getElementById('azInvestitore').value;
+  const aziendaId = document.getElementById('azAzienda').value;
+  const serieId = document.getElementById('azSerie').value;
+  const qty = parseInt(document.getElementById('azQty').value);
+  if(!username){ mostraToast('Seleziona un investitore.'); return; }
+  if(!aziendaId||!serieId){ mostraToast("Seleziona un'azienda e una serie."); return; }
+  if(!qty||qty<=0){ mostraToast('Quantità non valida.'); return; }
+  try{
+    if(direzione==='rimuovi'){
+      const inv = INVESTITORI[username]||{};
+      const possedute = getQty(inv.portafoglio, aziendaId, serieId);
+      if(qty>possedute) throw new Error("L'investitore possiede solo "+possedute+' azioni di questa serie.');
+    }
+    await transazioneSuSerie(aziendaId, serieId, serie=>{
+      const nuoveVendute = (serie.azioniVendute||0) + (direzione==='assegna'?qty:-qty);
+      if(direzione==='assegna' && nuoveVendute>(serie.shareTotali||0)) throw new Error('Superato il totale di azioni emesse per questa serie.');
+      serie.azioniVendute = Math.max(0, nuoveVendute);
+      return serie;
+    });
+    await runTransaction(ref(db,'investitori/'+username+'/pub'), pub=>{
+      if(!pub) return pub;
+      pub.portafoglio = pub.portafoglio || {};
+      const attuali = getQty(pub.portafoglio, aziendaId, serieId);
+      const nuove = direzione==='assegna' ? attuali+qty : attuali-qty;
+      setQty(pub.portafoglio, aziendaId, serieId, Math.max(0,nuove));
+      return pub;
+    });
+    await push(ref(db,'operazioni'), { tipo:'admin-azioni', investitore:username, aziendaId, serieId, quantita:qty, direzione, timestamp: Date.now() });
+    document.getElementById('azQty').value = '1';
+    mostraToast(direzione==='assegna' ? 'Azioni assegnate.' : 'Azioni rimosse.');
+  }catch(e){ mostraToast(e.message||'Operazione non riuscita.'); }
 }
 
 function renderAdmin(){
@@ -819,6 +1301,7 @@ function renderAdmin(){
     document.getElementById('cfgValutaSimbolo').value = CONFIG.valutaSimbolo||'';
     document.getElementById('cfgSaldoIniziale').value = CONFIG.saldoIniziale||0;
     document.getElementById('cfgImpact').value = CONFIG.impactFactor||0.5;
+    document.getElementById('cfgCommissione').value = CONFIG.commissionePct||0;
   }
   const el = document.getElementById('adminInvestitori');
   const utenti = Object.keys(INVESTITORI);
@@ -852,19 +1335,23 @@ window.confermaModificaSaldo = async function(username){
 window.adminOperaPerConto = function(username){
   const opzioni = Object.keys(AZIENDE).map(id=>`<option value="${id}">${AZIENDE[id].nome}</option>`).join('');
   apriModal('Opera per conto di '+username, `
-    <label>Azienda</label><select id="opAzienda">${opzioni}</select>
+    <label>Azienda</label><select id="opAzienda" onchange="popolaSerieSelect('opSerie','opAzienda')">${opzioni}</select>
+    <label>Serie</label><select id="opSerie"></select>
     <label>Quantità</label><input type="number" id="opQty" value="1" min="1" step="1">
     <div class="row2" style="margin-top:14px;">
       <button class="btn-green" onclick="confermaOperaPerConto('${username}','buy')">Acquista</button>
       <button class="btn-red" onclick="confermaOperaPerConto('${username}','sell')">Vendi</button>
     </div>
   `);
+  popolaSerieSelect('opSerie','opAzienda');
 }
 window.confermaOperaPerConto = async function(username, tipo){
+  if(!datiPronti()){ mostraToast('Dati ancora in caricamento, riprova tra un istante.'); return; }
   const id = document.getElementById('opAzienda').value;
+  const serieId = document.getElementById('opSerie').value;
   const qty = parseInt(document.getElementById('opQty').value);
   if(!qty||qty<=0){ mostraToast('Quantità non valida.'); return; }
-  try{ await eseguiOrdine(username, id, qty, tipo); chiudiModal(); mostraToast('Operazione eseguita per '+username+'.'); }
+  try{ await eseguiOrdine(username, id, serieId, qty, tipo); chiudiModal(); mostraToast('Operazione eseguita per '+username+'.'); }
   catch(e){ mostraToast(e.message); }
 }
 
@@ -873,7 +1360,8 @@ window.adminSalvaConfig = async function(){
     valutaNome: document.getElementById('cfgValutaNome').value.trim() || 'Diamanti',
     valutaSimbolo: document.getElementById('cfgValutaSimbolo').value.trim() || '💎',
     saldoIniziale: parseFloat(document.getElementById('cfgSaldoIniziale').value) || 0,
-    impactFactor: parseFloat(document.getElementById('cfgImpact').value) || 0.5
+    impactFactor: parseFloat(document.getElementById('cfgImpact').value) || 0.5,
+    commissionePct: parseFloat(document.getElementById('cfgCommissione').value) || 0
   };
   await update(ref(db,'config'), nuovaConfig);
   mostraToast('Impostazioni salvate.');
@@ -899,7 +1387,7 @@ async function controllaPrimoAvvio(){
     const pass = prompt('Primo avvio rilevato: imposta ora la password amministratore per questa borsa.');
     if(pass && pass.length>=4){
       const hash = await sha256(pass);
-      await set(ref(db,'config'), { valutaNome:"Diamanti", valutaSimbolo:"💎", saldoIniziale:100, impactFactor:0.5, adminPassHash: hash });
+      await set(ref(db,'config'), { valutaNome:"Diamanti", valutaSimbolo:"💎", saldoIniziale:100, impactFactor:0.5, commissionePct:0.5, adminPassHash: hash });
       mostraToast('Password amministratore impostata. Ora puoi accedere dalla scheda Admin.');
     }
   }
