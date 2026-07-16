@@ -102,10 +102,13 @@
   .feed div b{color:var(--text);}
   .setupWarning{background:#2a1414;border:1px solid var(--amber-dim);color:#f0b9c2;padding:14px;border-radius:8px;font-size:12px;line-height:1.6;margin:16px;}
 
-  /* serie (pillole) */
+  /* serie (pillole) + selettore periodo grafico (stesso stile, riusato) */
   #seriePills{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
   #seriePills button{background:var(--panel2);color:#a89b9d;padding:6px 12px;font-size:11.5px;}
   #seriePills button.on{background:var(--amber);color:#fff0f0;}
+  .pillBar{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .pillBar button{background:var(--panel2);color:#a89b9d;padding:5px 10px;font-size:11px;}
+  .pillBar button.on{background:var(--blue);color:#08101f;}
 
   /* grafico a torta proprietà */
   .pie-wrap{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;}
@@ -199,7 +202,7 @@
   <nav class="tabs">
     <button class="on" data-tab="mercato" onclick="cambiaTab('mercato')">Mercato</button>
     <button data-tab="conto" onclick="cambiaTab('conto')">Il mio conto</button>
-    <button data-tab="trasferisci" id="navTrasferisci" onclick="cambiaTab('trasferisci')">Trasferisci</button>
+    <button data-tab="trasferisci" id="navTrasferisci" onclick="cambiaTab('trasferisci')">Mercato P2P</button>
     <button data-tab="classifica" onclick="cambiaTab('classifica')">Classifica</button>
     <button data-tab="admin" id="navAdmin" class="hidden" onclick="cambiaTab('admin')">Admin</button>
   </nav>
@@ -231,6 +234,7 @@
             </div>
             <div id="seriePills" class="hidden"></div>
             <div class="quote-caps" id="quoteCaps"></div>
+            <div id="periodoPillsAzienda" class="pillBar"></div>
             <canvas id="chart" width="800" height="260" style="margin-top:10px;"></canvas>
           </div>
           <div class="panel" id="ordinePanel">
@@ -282,6 +286,12 @@
         </table>
       </div>
       <div class="panel">
+        <h2>Andamento patrimonio</h2>
+        <div id="periodoPillsConto" class="pillBar"></div>
+        <canvas id="ctChart" width="800" height="220" style="margin-top:10px;"></canvas>
+        <div class="muted" style="font-size:10.5px;margin-top:6px;">Ricostruito dallo storico delle tue operazioni: acquisti/vendite, offerte concluse, dividendi, trasferimenti e correzioni admin registrate dopo questo aggiornamento sono esatti; eventuali dividendi o correzioni admin molto vecchi (prima di questo aggiornamento) potrebbero non essere riflessi nel tratto più a sinistra del grafico.</div>
+      </div>
+      <div class="panel">
         <h2>Posizioni possedute</h2>
         <table><thead><tr><th>Azienda</th><th>Quantità</th><th>Valore</th></tr></thead>
         <tbody id="ctPosizioni"></tbody></table>
@@ -292,26 +302,33 @@
       </div>
     </div>
 
-    <!-- ---------- TRASFERISCI ---------- -->
+    <!-- ---------- MERCATO P2P ---------- -->
     <div id="tab-trasferisci" class="tabpane hidden">
       <div class="panel">
-        <h2>Trasferisci denaro</h2>
+        <h2>Bacheca delle offerte fra investitori</h2>
+        <div class="muted" style="font-size:11px;margin-bottom:10px;">Metti in vendita le tue azioni per un prezzo totale a tua scelta (es. "3 azioni per 100 diamanti"). Restano riservate — non più tue — finché qualcuno non accetta l'offerta o tu non la ritiri. Ogni scambio concluso sposta anche il prezzo di mercato del titolo verso il prezzo negoziato, esattamente come un ordine normale. Quando la borsa è sospesa non è possibile pubblicare né accettare offerte.</div>
+        <label>Azienda</label><select id="offAzienda" onchange="popolaSerieSelect('offSerie','offAzienda')"></select>
+        <div class="row2">
+          <div><label>Serie</label><select id="offSerie"></select></div>
+          <div><label>Quantità in vendita</label><input type="number" id="offQty" value="1" min="1" step="1"></div>
+        </div>
+        <label>Prezzo totale richiesto (per l'intero lotto, non per singola azione)</label>
+        <input type="number" id="offPrezzo" min="0.01" step="0.01" placeholder="es. 100">
+        <button class="btn-amber" style="width:100%;margin-top:12px;" onclick="creaOfferta()">Pubblica offerta di vendita</button>
+      </div>
+      <div class="panel">
+        <h2>Offerte aperte</h2>
+        <div id="listaOfferte"><span class="muted">Nessuna offerta aperta al momento.</span></div>
+      </div>
+      <div class="panel">
+        <h2>Regala denaro</h2>
         <label>Destinatario</label><select id="trDenDest"></select>
         <label>Importo</label><input type="number" id="trDenImporto" min="0.01" step="0.01">
         <button class="btn-green" style="width:100%;margin-top:12px;" onclick="eseguiTrasferimentoDenaro()">Invia denaro</button>
+        <div class="muted" style="font-size:11px;margin-top:8px;">Il trasferimento diretto di azioni fra investitori non esiste più: ogni passaggio di azioni deve passare dalla bacheca offerte qui sopra, così il prezzo di mercato riflette sempre gli scambi realmente avvenuti.</div>
       </div>
       <div class="panel">
-        <h2>Trasferisci azioni</h2>
-        <label>Destinatario</label><select id="trAzDest"></select>
-        <div class="row2">
-          <div><label>Azienda</label><select id="trAzAzienda" onchange="popolaSerieSelect('trAzSerie','trAzAzienda')"></select></div>
-          <div><label>Serie</label><select id="trAzSerie"></select></div>
-        </div>
-        <label>Quantità</label><input type="number" id="trAzQty" value="1" min="1" step="1">
-        <button class="btn-green" style="width:100%;margin-top:12px;" onclick="eseguiTrasferimentoAzioni()">Invia azioni</button>
-      </div>
-      <div class="panel">
-        <h2>Le mie operazioni di trasferimento</h2>
+        <h2>Le mie attività recenti</h2>
         <div class="feed" id="trStorico"></div>
       </div>
     </div>
@@ -545,6 +562,26 @@
      "Azioni Ordinarie" e "Azioni Privilegiate"), ciascuna con il proprio
      prezzo, grafico e tetto massimo di azioni.
    - NUOVO: colori del sito ispirati allo stemma del Comune di Trino.
+
+   CHANGELOG v3:
+   - NUOVO: il grafico del prezzo di ogni azienda ha ora un selettore del
+     periodo (1h/6h/24h/7g/1 mese/1 anno/Sempre), mostrato di base sulle
+     ultime 24 ore.
+   - NUOVO: grafico "Andamento patrimonio" nel Conto, con lo stesso
+     selettore di periodo, che ricostruisce il valore storico (liquidità
+     + azioni valutate al prezzo che avevano in quel momento) a partire
+     dallo storico delle proprie operazioni.
+   - MODIFICA COMPLETA: il vecchio trasferimento diretto di azioni fra
+     investitori è stato rimosso ed è sostituito da una bacheca di
+     offerte (tab "Mercato P2P"): un investitore mette in vendita un
+     certo numero di azioni per un prezzo totale a sua scelta, altri le
+     accettano. Le azioni offerte restano riservate finché l'offerta non
+     è accettata o ritirata. Ogni scambio concluso sposta anche il
+     prezzo di mercato del titolo verso il prezzo negoziato (stesso
+     meccanismo di impatto/velocità degli ordini normali). Come per gli
+     ordini normali, quando la borsa è sospesa non si possono né
+     pubblicare né accettare offerte. Il semplice regalo di denaro fra
+     investitori resta invece disponibile, in fondo alla stessa tab.
    ====================================================================== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -596,12 +633,53 @@ const FINESTRA_RIPRISTINO_MS = 30*24*3600*1000; // 30 giorni
 let AZIENDE = {};       // id -> oggetto azienda (nome, settore, logoUrl, serie:{id:{...}})
 let INVESTITORI = {};   // username -> {saldo, portafoglio}
 let OPERAZIONI = [];    // log globale, array ordinato
+let OFFERTE = [];        // offerte di vendita fra investitori (bacheca "Mercato P2P")
 let sessione = null;    // {tipo:'investitore'|'admin', username}
 let aziendaSelezionata = null;
 let serieSelezionata = null;
-const caricamento = { config:false, aziende:false, investitori:false, operazioni:false };
+let periodoGraficoAzienda = '24h'; // periodo mostrato nel grafico prezzo dell'azienda selezionata
+let periodoGraficoConto = '24h';   // periodo mostrato nel grafico patrimonio ("Il mio conto")
+const caricamento = { config:false, aziende:false, investitori:false, operazioni:false, offerte:false };
 function segnaCaricato(chiave){ caricamento[chiave] = true; }
 function datiPronti(){ return Object.values(caricamento).every(Boolean); }
+
+/* =====================================================================
+   PERIODI PER I GRAFICI — usati sia dal grafico prezzo di un'azienda sia
+   dal grafico "Andamento patrimonio" nel Conto. Di base si mostrano le
+   ultime 24 ore, ma l'utente può scegliere un'altra finestra temporale.
+   ===================================================================== */
+const PERIODI = {
+  '1h':   { label:'1h',     ms:3600000 },
+  '6h':   { label:'6h',     ms:6*3600000 },
+  '24h':  { label:'24h',    ms:24*3600000 },
+  '7d':   { label:'7g',     ms:7*86400000 },
+  '30d':  { label:'1 mese', ms:30*86400000 },
+  '365d': { label:'1 anno', ms:365*86400000 },
+  'all':  { label:'Sempre', ms:null }
+};
+// Taglia un array di punti {t,p} alla finestra temporale scelta. Se il
+// primo punto disponibile dentro la finestra non coincide esattamente con
+// l'inizio della finestra, antepone un punto "piatto" al valore noto più
+// recente PRIMA del taglio, così il grafico parte già al livello corretto
+// invece di apparire vuoto o troncato in modo innaturale.
+function filtraPerPeriodo(punti, periodoKey){
+  if(!punti || !punti.length) return punti;
+  const info = PERIODI[periodoKey] || PERIODI['24h'];
+  if(!info.ms) return punti; // "Sempre": nessun taglio
+  const now = punti[punti.length-1].t;
+  const cutoff = now - info.ms;
+  let valorePrima = punti[0].p;
+  for(const pt of punti){ if(pt.t<=cutoff) valorePrima = pt.p; else break; }
+  const dentro = punti.filter(pt=>pt.t>cutoff);
+  return [{ t:cutoff, p:valorePrima }, ...dentro];
+}
+function renderPillsPeriodo(containerId, periodoAttuale, onSelectFn){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  el.innerHTML = Object.keys(PERIODI).map(k=>`<button class="${k===periodoAttuale?'on':''}" onclick="${onSelectFn}('${k}')">${PERIODI[k].label}</button>`).join('');
+}
+window.selezionaPeriodoAzienda = function(k){ periodoGraficoAzienda = k; renderChart(); }
+window.selezionaPeriodoConto = function(k){ periodoGraficoConto = k; renderCtChart(); }
 
 const PALETTE = ['#b3162f','#4f8cff','#3ddc84','#e8a33d','#8a6528','#c77dff','#4dd0e1','#ff8fab','#9fd356','#f4a261'];
 
@@ -905,6 +983,12 @@ function attaccaListener(){
     segnaCaricato('operazioni');
     renderTutto();
   });
+  onValue(ref(db,'offerte'), snap=>{
+    const val = snap.exists() ? snap.val() : {};
+    OFFERTE = Object.keys(val).map(k=>Object.assign({id:k}, val[k]));
+    segnaCaricato('offerte');
+    renderTutto();
+  });
 }
 function refreshPrezziLive(){ renderBannerSospensione(); renderListaAziende(); renderQuotazione(); renderChart(); }
 
@@ -1045,6 +1129,24 @@ function storicoPrezzi(aziendaId, serieId, serie){
   return punti;
 }
 
+// Ricostruisce prezzoBase/timestampBase di una serie come erano al tempo
+// "t", rigiocando in ordine gli eventi/scambi registrati fino a quel
+// momento. La tendenza (%giornaliero) non viene invece "storicizzata"
+// (il log non registra i cambi di tendenza nel tempo): si usa sempre
+// quella attuale anche nel passato, una semplificazione documentata nel
+// manuale. Serve solo per calcolare il valore storico dei portafogli.
+function statoSerieAlMomento(aziendaId, serieId, serieAttuale, t){
+  const stato = { prezzoBase: serieAttuale.prezzoIniziale, timestampBase: serieAttuale.timestampBase||0, tendenza: serieAttuale.tendenza||0, attiva:true };
+  OPERAZIONI.filter(o=>o.aziendaId===aziendaId && (o.serieId||'A')===serieId && o.prezzoDopo!=null && o.timestamp<=t)
+    .sort((a,b)=>a.timestamp-b.timestamp)
+    .forEach(o=>{ stato.prezzoBase = o.prezzoDopo; stato.timestampBase = o.timestamp; });
+  return stato;
+}
+function prezzoSerieAlMomento(aziendaId, serieId, serieAttuale, t){
+  const stato = statoSerieAlMomento(aziendaId, serieId, serieAttuale, t);
+  return prezzoCorrente(stato, aziendaId+'-'+serieId, t);
+}
+
 // Disegna un grafico a linea generico dentro "canvas" a partire da un
 // array di punti {t,p}. Riusata sia per il grafico principale del
 // mercato sia per i 3 mini-grafici nel dettaglio azienda (sola lettura).
@@ -1082,7 +1184,8 @@ function disegnaGraficoLinea(canvas, dati){
 function renderChart(){
   const canvas = document.getElementById('chart');
   const serie = serieCorrente();
-  const dati = serie ? storicoPrezzi(aziendaSelezionata, serieSelezionata, serie).slice(-60) : null;
+  renderPillsPeriodo('periodoPillsAzienda', periodoGraficoAzienda, 'selezionaPeriodoAzienda');
+  const dati = serie ? filtraPerPeriodo(storicoPrezzi(aziendaSelezionata, serieSelezionata, serie), periodoGraficoAzienda).slice(-300) : null;
   disegnaGraficoLinea(canvas, dati);
 }
 
@@ -1298,6 +1401,9 @@ function riassuntoOperazione(o){
   if(o.tipo==='admin-azioni') return `<b>Admin:</b> ${o.direzione==='assegna'?'assegnate':'rimosse'} ${o.quantita} × ${labelAzienda(o)} a/da <b>${o.investitore}</b> <span class="muted">(${data})</span>`;
   if(o.tipo==='trasferimento-denaro') return `<b>${o.mittente}</b> ha trasferito ${fmt(o.importo)} a <b>${o.destinatario}</b> <span class="muted">(${data})</span>`;
   if(o.tipo==='trasferimento-azioni') return `<b>${o.mittente}</b> ha trasferito ${o.quantita} × ${labelAzienda(o)} a <b>${o.destinatario}</b> <span class="muted">(${data})</span>`;
+  if(o.tipo==='offerta-creata') return `<b>${o.mittente}</b> ha messo in vendita ${o.quantita} × ${labelAzienda(o)} per ${fmt(o.prezzoTotale)} <span class="muted">(${data})</span>`;
+  if(o.tipo==='offerta-annullata') return `<b>${o.mittente}</b> ha ritirato un'offerta di vendita di ${o.quantita} × ${labelAzienda(o)} <span class="muted">(${data})</span>`;
+  if(o.tipo==='offerta-scambio') return `<b>${o.acquirente}</b> ha comprato da <b>${o.venditore}</b> ${o.quantita} × ${labelAzienda(o)} per ${fmt(o.prezzoTotale)} <span class="muted">(${data})</span>`;
   if(o.tipo==='admin-elimina-azienda') return `<b>Admin:</b> ha eliminato l'azienda <b>${o.nomeAzienda||o.aziendaId}</b> <span class="muted">(${data})</span>`;
   if(o.tipo==='admin-ripristina-azienda') return `<b>Admin:</b> ha ripristinato l'azienda <b>${o.nomeAzienda||o.aziendaId}</b> <span class="muted">(${data})</span>`;
   if(o.tipo==='admin-archivia-azienda') return `<b>Admin:</b> ha archiviato l'azienda <b>${o.nomeAzienda||o.aziendaId}</b> <span class="muted">(${data})</span>`;
@@ -1424,29 +1530,191 @@ async function eseguiOrdine(username, aziendaId, serieId, qty, tipo, bypassLimit
 }
 
 /* =====================================================================
-   TRASFERIMENTI FRA INVESTITORI (denaro e azioni)
+   MERCATO P2P — bacheca di offerte create dagli investitori (sostituisce
+   il vecchio trasferimento diretto di azioni) + regalo di denaro.
+
+   Ogni offerta è "vendo X azioni di una serie per un prezzo TOTALE a mia
+   scelta". Le azioni offerte vengono messe da parte (escrow) al momento
+   della creazione dell'offerta, così il venditore non può rivenderle
+   altrove nel frattempo; tornano a lui se ritira l'offerta. Quando
+   un altro investitore accetta, lo scambio avviene al prezzo concordato
+   (non a quello calcolato dalla formula di mercato) e SPOSTA il prezzo
+   di mercato della serie verso il prezzo negoziato, con lo stesso
+   meccanismo di impatto/velocità degli ordini normali: una cifra
+   negoziata sopra il prezzo corrente lo spinge in su, una sotto lo
+   spinge in giù, proporzionalmente al peso dello scambio sulla
+   liquidità configurata.
    ===================================================================== */
 function renderTrasferimenti(){
   if(!sessione || sessione.tipo==='admin') return;
   const destDen = document.getElementById('trDenDest');
-  const destAz = document.getElementById('trAzDest');
   const altri = Object.keys(INVESTITORI).filter(u=>u!==sessione.username);
-  [destDen, destAz].forEach(sel=>{
-    if(!sel) return;
-    const cur = sel.value;
-    sel.innerHTML = altri.length ? altri.map(u=>`<option value="${u}">${u}</option>`).join('') : '<option value="">Nessun altro investitore</option>';
-    if(cur && altri.includes(cur)) sel.value = cur;
-  });
-  const selAzAzienda = document.getElementById('trAzAzienda');
-  if(selAzAzienda){
-    const cur = selAzAzienda.value;
-    selAzAzienda.innerHTML = aziendeAttiveIds().map(id=>`<option value="${id}">${AZIENDE[id].nome}</option>`).join('');
-    if(cur && AZIENDE[cur] && !AZIENDE[cur].eliminata) selAzAzienda.value = cur;
-    popolaSerieSelect('trAzSerie','trAzAzienda');
+  if(destDen){
+    const cur = destDen.value;
+    destDen.innerHTML = altri.length ? altri.map(u=>`<option value="${u}">${u}</option>`).join('') : '<option value="">Nessun altro investitore</option>';
+    if(cur && altri.includes(cur)) destDen.value = cur;
   }
-  const mie = OPERAZIONI.filter(o=>(o.tipo==='trasferimento-denaro'||o.tipo==='trasferimento-azioni') && (o.mittente===sessione.username || o.destinatario===sessione.username)).slice(0,30);
+  const selOffAzienda = document.getElementById('offAzienda');
+  if(selOffAzienda){
+    const cur = selOffAzienda.value;
+    const ids = aziendeAttiveIds();
+    selOffAzienda.innerHTML = ids.length ? ids.map(id=>`<option value="${id}">${AZIENDE[id].nome}</option>`).join('') : '<option value="">Nessuna azienda</option>';
+    if(cur && AZIENDE[cur] && !AZIENDE[cur].eliminata) selOffAzienda.value = cur;
+    popolaSerieSelect('offSerie','offAzienda');
+  }
+  renderOfferte();
+  const mie = OPERAZIONI.filter(o=>
+    (o.tipo==='trasferimento-denaro' && (o.mittente===sessione.username || o.destinatario===sessione.username)) ||
+    ((o.tipo==='offerta-creata'||o.tipo==='offerta-annullata') && o.mittente===sessione.username) ||
+    (o.tipo==='offerta-scambio' && (o.venditore===sessione.username || o.acquirente===sessione.username))
+  ).slice(0,30);
   const storicoEl = document.getElementById('trStorico');
-  if(storicoEl) storicoEl.innerHTML = mie.length ? mie.map(o=>`<div>${riassuntoOperazione(o)}</div>`).join('') : '<div class="muted">Nessun trasferimento ancora.</div>';
+  if(storicoEl) storicoEl.innerHTML = mie.length ? mie.map(o=>`<div>${riassuntoOperazione(o)}</div>`).join('') : '<div class="muted">Nessuna attività ancora.</div>';
+}
+
+function renderOfferte(){
+  const el = document.getElementById('listaOfferte');
+  if(!el || !sessione || sessione.tipo==='admin') return;
+  const aperte = OFFERTE.filter(o=>o.stato==='aperta').sort((a,b)=>b.creata-a.creata);
+  if(!aperte.length){ el.innerHTML = '<span class="muted">Nessuna offerta aperta al momento.</span>'; return; }
+  el.innerHTML = aperte.map(o=>{
+    const mia = o.venditore===sessione.username;
+    const azNome = labelAzienda(o);
+    const bottone = mia
+      ? `<button class="btn-ghost" onclick="annullaOfferta('${o.id}')">Ritira</button>`
+      : `<button class="btn-green" onclick="accettaOfferta('${o.id}')"${isBorsaSospesa()?' disabled':''}>Accetta per ${fmt(o.prezzoTotale)}</button>`;
+    return `<div class="trashItem">
+      <div><b>${o.venditore}</b> vende ${o.quantita} × ${azNome}<div class="meta">Prezzo richiesto: ${fmt(o.prezzoTotale)} (${fmt(o.prezzoTotale/o.quantita)}/azione)</div></div>
+      <div>${bottone}</div>
+    </div>`;
+  }).join('');
+}
+
+window.creaOfferta = async function(){
+  if(sessione.tipo==='admin'){ mostraToast('Accedi come investitore per pubblicare offerte.'); return; }
+  if(isBorsaSospesa()){ mostraToast('La borsa è sospesa: non è possibile pubblicare offerte al momento.'); return; }
+  if(!datiPronti()){ mostraToast('Dati ancora in caricamento, riprova tra un istante.'); return; }
+  const aziendaId = document.getElementById('offAzienda').value;
+  const serieId = document.getElementById('offSerie').value;
+  const qty = parseInt(document.getElementById('offQty').value);
+  const prezzoTotale = parseFloat(document.getElementById('offPrezzo').value);
+  if(!aziendaId||!serieId){ mostraToast("Seleziona un'azienda e una serie."); return; }
+  if(!qty||qty<=0){ mostraToast('Quantità non valida.'); return; }
+  if(!prezzoTotale||prezzoTotale<=0){ mostraToast('Prezzo totale non valido.'); return; }
+  const azStato = AZIENDE[aziendaId];
+  if(azStato && (azStato.archiviata||azStato.eliminata)){ mostraToast('Questa azienda non è più negoziabile.'); return; }
+  const serieRif = serieDiAzienda(azStato)[serieId];
+  if(serieRif){
+    const limiteQty = Math.max(1, Math.floor((serieRif.shareTotali||0) * ((CONFIG.limiteOrdinePct!=null?CONFIG.limiteOrdinePct:20)/100)));
+    if(qty>limiteQty){ mostraToast('Puoi offrire al massimo '+limiteQty+' azioni per offerta su questa serie.'); return; }
+  }
+  try{
+    await runTransaction(ref(db,'investitori/'+sessione.username+'/pub'), pub=>{
+      if(!pub) return pub;
+      pub.portafoglio = pub.portafoglio || {};
+      const possedute = getQty(pub.portafoglio, aziendaId, serieId);
+      if(qty>possedute) throw new Error('Non possiedi abbastanza azioni.');
+      setQty(pub.portafoglio, aziendaId, serieId, possedute-qty);
+      return pub;
+    });
+  }catch(e){ mostraToast(e.message||'Operazione non riuscita.'); return; }
+  const nuovaRef = push(ref(db,'offerte'));
+  await set(nuovaRef, { venditore:sessione.username, aziendaId, serieId, quantita:qty, prezzoTotale, stato:'aperta', creata: Date.now() });
+  await push(ref(db,'operazioni'), { tipo:'offerta-creata', mittente:sessione.username, aziendaId, serieId, quantita:qty, prezzoTotale, timestamp: Date.now() });
+  document.getElementById('offQty').value='1'; document.getElementById('offPrezzo').value='';
+  mostraToast('Offerta pubblicata: le tue azioni restano riservate finché non viene accettata o la ritiri.');
+}
+
+window.annullaOfferta = async function(id){
+  const off = OFFERTE.find(o=>o.id===id);
+  if(!off){ mostraToast('Offerta non trovata.'); return; }
+  if(off.venditore!==sessione.username){ mostraToast('Puoi ritirare solo le tue offerte.'); return; }
+  try{
+    await runTransaction(ref(db,'offerte/'+id), node=>{
+      if(!node || node.stato!=='aperta') throw new Error('Questa offerta non è più disponibile.');
+      node.stato = 'annullata';
+      return node;
+    });
+  }catch(e){ mostraToast(e.message||'Operazione non riuscita.'); return; }
+  await runTransaction(ref(db,'investitori/'+sessione.username+'/pub'), pub=>{
+    if(!pub) return pub;
+    pub.portafoglio = pub.portafoglio || {};
+    const attuali = getQty(pub.portafoglio, off.aziendaId, off.serieId);
+    setQty(pub.portafoglio, off.aziendaId, off.serieId, attuali+off.quantita);
+    return pub;
+  });
+  await push(ref(db,'operazioni'), { tipo:'offerta-annullata', mittente:sessione.username, aziendaId:off.aziendaId, serieId:off.serieId, quantita:off.quantita, prezzoTotale:off.prezzoTotale, timestamp: Date.now() });
+  mostraToast('Offerta ritirata, azioni restituite.');
+}
+
+window.accettaOfferta = async function(id){
+  if(sessione.tipo==='admin'){ mostraToast('Accedi come investitore per accettare offerte.'); return; }
+  if(isBorsaSospesa()){ mostraToast('La borsa è sospesa: non è possibile accettare offerte al momento.'); return; }
+  if(!datiPronti()){ mostraToast('Dati ancora in caricamento, riprova tra un istante.'); return; }
+  const off = OFFERTE.find(o=>o.id===id);
+  if(!off){ mostraToast('Offerta non trovata.'); return; }
+  if(off.venditore===sessione.username){ mostraToast('Non puoi accettare la tua stessa offerta.'); return; }
+  const azStato = AZIENDE[off.aziendaId];
+  if(azStato && (azStato.archiviata||azStato.eliminata)){ mostraToast('Questa azienda non è più negoziabile.'); return; }
+  const invSnap = await get(ref(db,'investitori/'+sessione.username+'/pub'));
+  if(!invSnap.exists()){ mostraToast('Investitore non trovato.'); return; }
+  const inv = invSnap.val();
+  if((inv.saldo||0) < off.prezzoTotale){ mostraToast('Liquidità insufficiente.'); return; }
+  try{
+    await runTransaction(ref(db,'offerte/'+id), node=>{
+      if(!node || node.stato!=='aperta') throw new Error('Questa offerta non è più disponibile (forse già accettata o ritirata).');
+      node.stato = 'completata';
+      node.acquirente = sessione.username;
+      node.completataTimestamp = Date.now();
+      return node;
+    });
+  }catch(e){ mostraToast(e.message||'Operazione non riuscita.'); return; }
+
+  const commissione = off.prezzoTotale*((CONFIG.commissionePct||0)/100);
+  const nettoVenditore = off.prezzoTotale - commissione;
+
+  await runTransaction(ref(db,'investitori/'+sessione.username+'/pub'), pub=>{
+    if(!pub) return pub;
+    pub.portafoglio = pub.portafoglio || {};
+    const attuali = getQty(pub.portafoglio, off.aziendaId, off.serieId);
+    setQty(pub.portafoglio, off.aziendaId, off.serieId, attuali+off.quantita);
+    pub.saldo = (pub.saldo||0) - off.prezzoTotale;
+    return pub;
+  });
+  await runTransaction(ref(db,'investitori/'+off.venditore+'/pub'), pub=>{
+    if(!pub) return pub;
+    pub.saldo = (pub.saldo||0) + nettoVenditore;
+    return pub;
+  });
+
+  // Lo scambio negoziato influisce sul prezzo di mercato come un ordine
+  // normale, ma spostando il prezzo VERSO quello negoziato (sopra o
+  // sotto il prezzo attuale) invece che sempre in una direzione fissa.
+  try{
+    await transazioneSuSerie(off.aziendaId, off.serieId, serie=>{
+      const pMercato = prezzoCorrente(serie, off.aziendaId+'-'+off.serieId);
+      const pNegoziato = off.prezzoTotale/off.quantita;
+      const azRif = AZIENDE[off.aziendaId];
+      const liquidita = (azRif && azRif.liquidita!=null) ? azRif.liquidita : (serie.liquidita||50000);
+      const adesso = Date.now();
+      const trascorsoMs = adesso - (serie.volumeTimestamp||adesso);
+      const decadimento = Math.exp(-trascorsoMs/VELOCITA_FINESTRA_MS);
+      const volumeRecentePrima = (serie.volumeRecente||0) * decadimento;
+      const velocitaFactor = CONFIG.velocitaFactor!=null ? CONFIG.velocitaFactor : 1;
+      const moltiplicatoreVelocita = 1 + velocitaFactor * (volumeRecentePrima/liquidita);
+      const valoreMid = pMercato*off.quantita;
+      let impatto = (CONFIG.impactFactor||0.5) * (valoreMid/liquidita) * moltiplicatoreVelocita;
+      if(impatto>IMPATTO_MAX) impatto = IMPATTO_MAX;
+      serie.prezzoBase = Math.max(0.01, pMercato + (pNegoziato-pMercato)*impatto);
+      serie.timestampBase = adesso;
+      serie.volumeRecente = volumeRecentePrima + valoreMid;
+      serie.volumeTimestamp = adesso;
+      return serie;
+    });
+  }catch(e){ /* se la serie non è più raggiungibile lo scambio resta comunque valido: il prezzo semplicemente non si aggiorna */ }
+
+  await push(ref(db,'operazioni'), { tipo:'offerta-scambio', venditore:off.venditore, acquirente:sessione.username, aziendaId:off.aziendaId, serieId:off.serieId, quantita:off.quantita, prezzoTotale:off.prezzoTotale, commissione, timestamp: Date.now() });
+  mostraToast('Scambio concluso con '+off.venditore+'.');
 }
 
 window.eseguiTrasferimentoDenaro = async function(){
@@ -1486,48 +1754,89 @@ window.eseguiTrasferimentoDenaro = async function(){
   }
 }
 
-window.eseguiTrasferimentoAzioni = async function(){
-  if(isBorsaSospesa()){ mostraToast('La borsa è sospesa: i trasferimenti sono momentaneamente disattivati.'); return; }
-  const destinatario = document.getElementById('trAzDest').value;
-  const aziendaId = document.getElementById('trAzAzienda').value;
-  const serieId = document.getElementById('trAzSerie').value;
-  const qty = parseInt(document.getElementById('trAzQty').value);
-  if(!destinatario){ mostraToast('Seleziona un destinatario.'); return; }
-  if(destinatario===sessione.username){ mostraToast('Non puoi trasferire azioni a te stesso.'); return; }
-  if(!aziendaId||!serieId){ mostraToast("Seleziona un'azienda e una serie."); return; }
-  if(!qty||qty<=0){ mostraToast('Quantità non valida.'); return; }
-  try{
-    await runTransaction(ref(db,'investitori/'+sessione.username+'/pub'), pub=>{
-      if(!pub) return pub;
-      pub.portafoglio = pub.portafoglio || {};
-      const possedute = getQty(pub.portafoglio, aziendaId, serieId);
-      if(qty>possedute) throw new Error('Non possiedi abbastanza azioni.');
-      setQty(pub.portafoglio, aziendaId, serieId, possedute-qty);
-      return pub;
+/* =====================================================================
+   STORICO PATRIMONIO — ricostruisce il valore del portafoglio (liquidità
+   + azioni valutate al prezzo storico) nel tempo, per il grafico
+   "Andamento patrimonio" nel Conto. Non essendoci snapshot periodici
+   salvati, si parte dallo stato ATTUALE (noto con certezza) e si "disfa"
+   a ritroso ogni operazione registrata che ha coinvolto l'investitore,
+   così da ricostruire saldo e azioni possedute istante per istante.
+   Alcune vecchie operazioni precedenti a questo aggiornamento (dividendi
+   e correzioni admin) non registravano abbastanza informazioni per
+   essere disfatte con esattezza: in quei casi la ricostruzione si ferma
+   lì, e il grafico prima di quel punto potrebbe non essere disponibile.
+   ===================================================================== */
+function valorePortafoglioA(portafoglio, t){
+  let tot = 0;
+  Object.keys(AZIENDE).forEach(aid=>{
+    const serieMap = serieDiAzienda(AZIENDE[aid]);
+    Object.keys(serieMap).forEach(sid=>{
+      const qty = getQty(portafoglio, aid, sid);
+      if(qty>0) tot += qty*prezzoSerieAlMomento(aid, sid, serieMap[sid], t);
     });
-    try{
-      await runTransaction(ref(db,'investitori/'+destinatario+'/pub'), pub=>{
-        if(!pub) throw new Error('Destinatario non trovato.');
-        pub.portafoglio = pub.portafoglio || {};
-        const attuali = getQty(pub.portafoglio, aziendaId, serieId);
-        setQty(pub.portafoglio, aziendaId, serieId, attuali+qty);
-        return pub;
-      });
-    }catch(e2){
-      // rimborsa il mittente se l'accredito al destinatario fallisce
-      await runTransaction(ref(db,'investitori/'+sessione.username+'/pub'), pub=>{
-        if(!pub) return pub;
-        pub.portafoglio = pub.portafoglio || {};
-        const attuali = getQty(pub.portafoglio, aziendaId, serieId);
-        setQty(pub.portafoglio, aziendaId, serieId, attuali+qty);
-        return pub;
-      });
-      throw e2;
+  });
+  return tot;
+}
+function coinvolgeUtente(o, username){
+  switch(o.tipo){
+    case 'buy': case 'sell': case 'admin-azioni': case 'admin-rettifica': return o.investitore===username;
+    case 'dividendo': return !!(o.dettaglio && o.dettaglio[username]!=null);
+    case 'trasferimento-denaro': return o.mittente===username || o.destinatario===username;
+    case 'offerta-scambio': return o.venditore===username || o.acquirente===username;
+    default: return false;
+  }
+}
+function ricostruisciStoricoPortafoglio(username, periodoKey){
+  const now = Date.now();
+  const info = PERIODI[periodoKey] || PERIODI['24h'];
+  const cutoff = info.ms ? (now-info.ms) : 0;
+  const inv = INVESTITORI[username] || {saldo:0, portafoglio:{}};
+  let saldo = inv.saldo||0;
+  let portafoglio = JSON.parse(JSON.stringify(inv.portafoglio||{}));
+  const punti = [{ t: now, p: saldo + valorePortafoglioA(portafoglio, now) }];
+  // OPERAZIONI è già ordinato dal più recente al più vecchio: perfetto
+  // per "disfare" le operazioni una alla volta andando a ritroso.
+  const mie = OPERAZIONI.filter(o=>coinvolgeUtente(o, username));
+  for(const o of mie){
+    let gestita = true;
+    if(o.tipo==='buy' && o.investitore===username){
+      saldo += (o.prezzoEsecuzione*o.quantita + (o.commissione||0));
+      setQty(portafoglio, o.aziendaId, o.serieId, getQty(portafoglio,o.aziendaId,o.serieId)-o.quantita);
+    } else if(o.tipo==='sell' && o.investitore===username){
+      saldo -= (o.prezzoEsecuzione*o.quantita - (o.commissione||0));
+      setQty(portafoglio, o.aziendaId, o.serieId, getQty(portafoglio,o.aziendaId,o.serieId)+o.quantita);
+    } else if(o.tipo==='admin-azioni' && o.investitore===username){
+      const delta = o.direzione==='assegna' ? -o.quantita : o.quantita;
+      setQty(portafoglio, o.aziendaId, o.serieId, getQty(portafoglio,o.aziendaId,o.serieId)+delta);
+    } else if(o.tipo==='trasferimento-denaro'){
+      if(o.mittente===username) saldo += o.importo;
+      if(o.destinatario===username) saldo -= o.importo;
+    } else if(o.tipo==='offerta-scambio'){
+      if(o.venditore===username){ saldo -= (o.prezzoTotale-(o.commissione||0)); setQty(portafoglio,o.aziendaId,o.serieId, getQty(portafoglio,o.aziendaId,o.serieId)+o.quantita); }
+      if(o.acquirente===username){ saldo += o.prezzoTotale; setQty(portafoglio,o.aziendaId,o.serieId, getQty(portafoglio,o.aziendaId,o.serieId)-o.quantita); }
+    } else if(o.tipo==='dividendo' && o.dettaglio && o.dettaglio[username]!=null){
+      saldo -= o.dettaglio[username];
+    } else if(o.tipo==='admin-rettifica' && o.investitore===username && o.saldoPrecedente!=null){
+      saldo = o.saldoPrecedente;
+    } else {
+      gestita = false; // dati insufficienti per disfare questa operazione: la ricostruzione si ferma qui
     }
-    await push(ref(db,'operazioni'), { tipo:'trasferimento-azioni', mittente:sessione.username, destinatario, aziendaId, serieId, quantita:qty, timestamp: Date.now() });
-    document.getElementById('trAzQty').value = '1';
-    mostraToast('Azioni trasferite a '+destinatario+'.');
-  }catch(e){ mostraToast(e.message||'Trasferimento non riuscito.'); }
+    if(gestita){
+      punti.push({ t:o.timestamp, p: saldo + valorePortafoglioA(portafoglio, o.timestamp) });
+      if(info.ms && o.timestamp<=cutoff) break;
+    } else {
+      break;
+    }
+  }
+  punti.reverse();
+  return filtraPerPeriodo(punti, periodoKey);
+}
+function renderCtChart(){
+  const canvas = document.getElementById('ctChart');
+  if(!canvas || !sessione || sessione.tipo==='admin') return;
+  renderPillsPeriodo('periodoPillsConto', periodoGraficoConto, 'selezionaPeriodoConto');
+  const dati = ricostruisciStoricoPortafoglio(sessione.username, periodoGraficoConto).slice(-300);
+  disegnaGraficoLinea(canvas, dati);
 }
 
 /* =====================================================================
@@ -1559,6 +1868,7 @@ function renderConto(){
   document.getElementById('ctPosizioni').innerHTML = righe.length ? righe.join('') : '<tr><td colspan="3" class="muted">Nessuna posizione.</td></tr>';
   const mie = OPERAZIONI.filter(o=>o.investitore===sessione.username).slice(0,30);
   document.getElementById('ctStorico').innerHTML = mie.length ? mie.map(o=>`<div>${riassuntoOperazione(o)}</div>`).join('') : '<div class="muted">Nessuna operazione ancora.</div>';
+  renderCtChart();
 }
 
 /* =====================================================================
@@ -1985,15 +2295,17 @@ window.adminDistribuisciDividendo = async function(){
   const beneficiari = Object.keys(pesoPerInvestitore).filter(u=>pesoPerInvestitore[u]>0);
   if(!beneficiari.length || pesoTotaleEmesso<=0){ mostraToast('Nessun azionista con diritto a dividendo per questa azienda.'); return; }
 
+  const dettaglio = {};
   for(const u of beneficiari){
     const quota = (pesoPerInvestitore[u]/pesoTotaleEmesso) * importo;
+    dettaglio[u] = quota;
     await runTransaction(ref(db,'investitori/'+u+'/pub'), pub=>{
       if(!pub) return pub;
       pub.saldo = (pub.saldo||0) + quota;
       return pub;
     });
   }
-  await push(ref(db,'operazioni'), { tipo:'dividendo', aziendaId:id, importoTotale:importo, timestamp: Date.now() });
+  await push(ref(db,'operazioni'), { tipo:'dividendo', aziendaId:id, importoTotale:importo, dettaglio, timestamp: Date.now() });
   document.getElementById('dvImporto').value='';
   mostraToast('Dividendo distribuito a '+beneficiari.length+' azionisti.');
 }
@@ -2073,8 +2385,9 @@ window.confermaModificaSaldo = async function(username){
   const nuovo = parseFloat(document.getElementById('mSaldoNuovo').value);
   const motivo = document.getElementById('mSaldoMotivo').value.trim();
   if(isNaN(nuovo)){ mostraToast('Valore non valido.'); return; }
+  const saldoPrecedente = (INVESTITORI[username]||{}).saldo||0;
   await update(ref(db,'investitori/'+username+'/pub'), { saldo: nuovo });
-  await push(ref(db,'operazioni'), { tipo:'admin-rettifica', investitore:username, note:motivo, timestamp: Date.now() });
+  await push(ref(db,'operazioni'), { tipo:'admin-rettifica', investitore:username, note:motivo, saldoPrecedente, timestamp: Date.now() });
   chiudiModal(); mostraToast('Saldo aggiornato.');
 }
 
