@@ -92,6 +92,9 @@
   .rankNum{color:var(--amber);font-weight:700;width:22px;display:inline-block;}
   .modalBg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:60;padding:16px;}
   .modalBox{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto;}
+  .modalBox.modalBoxLarge{max-width:640px;}
+  .modalBox .modalMiniChart{width:100%;height:130px;}
+  #qName.clickable{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;}
   .modalBox h3{margin-top:0;color:var(--amber);}
   .closeX{float:right;cursor:pointer;color:#a89b9d;}
   .feed{max-height:220px;overflow-y:auto;font-size:11.5px;line-height:1.7;}
@@ -219,7 +222,7 @@
                 <img id="qLogo" class="hidden" alt="logo">
                 <div>
                   <div class="muted" style="font-size:11px;text-transform:uppercase;" id="qSector">—</div>
-                  <div style="font-size:19px;font-weight:600;" id="qName">Seleziona un'azienda</div>
+                  <div style="font-size:19px;font-weight:600;" id="qName" onclick="apriDettaglioAzienda()" title="Vedi il dettaglio dell'azienda">Seleziona un'azienda</div>
                 </div>
               </div>
               <div><span class="quote-price" id="qPrice">—</span><span class="quote-change" id="qChange"></span></div>
@@ -241,7 +244,7 @@
             <div class="muted" style="font-size:10.5px;margin-top:8px;">Il prezzo si muove con ogni ordine (impatto di mercato) e ogni operazione paga la commissione impostata dall'admin: comprare e rivendere subito comporta quindi una piccola perdita, non un guadagno.</div>
           </div>
           <div class="panel">
-            <h2>Distribuzione proprietà</h2>
+            <h2>Distribuzione tipo di azioni</h2>
             <div class="pie-wrap">
               <canvas id="pieChart" width="180" height="180"></canvas>
               <div class="legend" id="pieLegend"><span class="muted">Seleziona un'azienda.</span></div>
@@ -319,7 +322,13 @@
         </div>
         <div class="row2">
           <div><label>Logo (URL immagine, facoltativo)</label><input type="text" id="acLogo" placeholder="https://i.imgur.com/xxxx.png"></div>
-          <div><label>Nome prima serie di azioni</label><input type="text" id="acSerieNome" value="Azioni Ordinarie"></div>
+          <div><label>Tipo di azione (prima serie)</label>
+            <select id="acTipoSerie">
+              <option value="ordinarie">Azioni Ordinarie — voto + dividendo</option>
+              <option value="prioritarie">Azioni Prioritarie — dividendo doppio e prioritario, no voto</option>
+              <option value="plurivoto">Azioni Plurivoto — 2 voti, no dividendo</option>
+            </select>
+          </div>
         </div>
         <div class="row2">
           <div><label>Prezzo iniziale</label><input type="number" id="acPrezzo" value="10" step="0.1"></div>
@@ -337,7 +346,12 @@
       <div class="panel">
         <h2>Aggiungi una nuova serie di azioni</h2>
         <label>Azienda</label><select id="asAzienda"></select>
-        <label>Nome della nuova serie</label><input type="text" id="asNome" placeholder="es. Azioni Privilegiate">
+        <label>Tipo di azione della nuova serie</label>
+        <select id="asTipo">
+          <option value="ordinarie">Azioni Ordinarie — voto + dividendo</option>
+          <option value="prioritarie">Azioni Prioritarie — dividendo doppio e prioritario, no voto</option>
+          <option value="plurivoto">Azioni Plurivoto — 2 voti, no dividendo</option>
+        </select>
         <div class="row2">
           <div><label>Prezzo iniziale</label><input type="number" id="asPrezzo" value="10" step="0.1"></div>
           <div><label>Azioni totali emesse</label><input type="number" id="asShare" value="1000" step="1"></div>
@@ -363,7 +377,13 @@
 
         <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:12px;">
           <label>Serie da modificare</label><select id="meSerie" onchange="caricaSerieModifica()"></select>
-          <label>Nome serie</label><input type="text" id="meSerieNome">
+          <label>Tipo di azione</label>
+          <select id="meSerieTipo">
+            <option value="ordinarie">Azioni Ordinarie — voto + dividendo</option>
+            <option value="prioritarie">Azioni Prioritarie — dividendo doppio e prioritario, no voto</option>
+            <option value="plurivoto">Azioni Plurivoto — 2 voti, no dividendo</option>
+          </select>
+          <div class="muted" style="font-size:11px;margin:4px 0 0;">Cambiando il tipo qui puoi riportare a uno dei 3 tipi standard anche le serie create in precedenza con un nome libero.</div>
           <div class="row2">
             <div><label>Azioni totali emesse</label><input type="number" id="meShareTotali" step="1"></div>
             <div><label>Liquidità</label><input type="number" id="meLiquidita" step="100"></div>
@@ -390,10 +410,10 @@
 
       <div class="panel">
         <h2>Distribuisci dividendo</h2>
-        <label>Azienda</label><select id="dvAzienda" onchange="popolaSerieSelect('dvSerie','dvAzienda')"></select>
-        <label>Serie</label><select id="dvSerie"></select>
+        <label>Azienda</label><select id="dvAzienda"></select>
         <label>Utile totale da distribuire</label><input type="number" id="dvImporto" step="0.01">
-        <button class="btn-green" style="margin-top:12px;" onclick="adminDistribuisciDividendo()">Distribuisci in base alle quote</button>
+        <div class="muted" style="font-size:11px;margin:4px 0 10px;">Il dividendo è unico per l'intera azienda (non più per singola serie) ed è ripartito fra i possessori di Azioni Ordinarie e Azioni Prioritarie in base alle quote possedute: le Azioni Prioritarie hanno diritto a una quota doppia rispetto alle Ordinarie e vengono soddisfatte con priorità. Le Azioni Plurivoto non hanno diritto a dividendi.</div>
+        <button class="btn-green" onclick="adminDistribuisciDividendo()">Distribuisci in base al tipo di azione</button>
       </div>
 
       <div class="panel">
@@ -560,6 +580,30 @@ function datiPronti(){ return Object.values(caricamento).every(Boolean); }
 
 const PALETTE = ['#b3162f','#4f8cff','#3ddc84','#e8a33d','#8a6528','#c77dff','#4dd0e1','#ff8fab','#9fd356','#f4a261'];
 
+/* =====================================================================
+   TIPI STANDARD DI AZIONE — da qui in poi ogni serie può essere solo di
+   uno di questi 3 tipi (niente più nomi/serie a piacere):
+   - Ordinarie:   1 voto,  diritto a 1 "peso" di dividendo
+   - Prioritarie: 0 voti,  diritto a 2 "pesi" di dividendo (doppio, e pagate
+                  con priorità rispetto alle Ordinarie in caso di utile
+                  insufficiente a coprire tutti i pesi)
+   - Plurivoto:   2 voti,  0 pesi di dividendo (nessun dividendo)
+   "votoPeso" e "dividendoPeso" vengono usati sia per calcolare il
+   dividendo unico d'azienda, sia per i due grafici a torta "Proprietà
+   economica" (pesata sul dividendoPeso) e "Proprietà effettiva" (pesata
+   sul votoPeso) nel dettaglio azienda.
+   ===================================================================== */
+const TIPI_AZIONE = {
+  ordinarie:   { label:'Azioni Ordinarie',   votoPeso:1, dividendoPeso:1, colore:'#b3162f' },
+  prioritarie: { label:'Azioni Prioritarie', votoPeso:0, dividendoPeso:2, colore:'#4f8cff' },
+  plurivoto:   { label:'Azioni Plurivoto',   votoPeso:2, dividendoPeso:0, colore:'#e8a33d' }
+};
+const LABEL_NON_ASSEGNATO = 'Borsa di New Trino';
+function tipoSerie(serie){
+  return (serie && serie.tipo && TIPI_AZIONE[serie.tipo]) ? serie.tipo : 'ordinarie';
+}
+function labelTipo(tipo){ return (TIPI_AZIONE[tipo]||TIPI_AZIONE.ordinarie).label; }
+
 /* ---------------- utilità generali ---------------- */
 async function sha256(testo){
   const enc = new TextEncoder().encode(testo);
@@ -622,7 +666,7 @@ function serieDiAzienda(az){
   const risultato = {};
   if(az.prezzoBase!=null && !(az.serie && az.serie.A)){
     risultato.A = {
-      nome: 'Azioni Ordinarie', prezzoBase: az.prezzoBase, prezzoIniziale: az.prezzoIniziale,
+      nome: 'Azioni Ordinarie', tipo: 'ordinarie', prezzoBase: az.prezzoBase, prezzoIniziale: az.prezzoIniziale,
       timestampBase: az.timestampBase, shareTotali: az.shareTotali||1000,
       liquidita: az.liquidita||50000, tendenza: az.tendenza||0, attiva: az.attiva!==false,
       azioniVendute: sommaPossedutoTotale(az.id,'A')
@@ -686,7 +730,7 @@ async function transazioneSuSerie(aziendaId, serieId, updater){
       const legacy = AZIENDE[aziendaId];
       if(serieId==='A' && legacy && legacy.prezzoBase!=null && !(legacy.serie && legacy.serie.A)){
         node = {
-          nome: 'Azioni Ordinarie', prezzoBase: legacy.prezzoBase, prezzoIniziale: legacy.prezzoIniziale,
+          nome: 'Azioni Ordinarie', tipo: 'ordinarie', prezzoBase: legacy.prezzoBase, prezzoIniziale: legacy.prezzoIniziale,
           timestampBase: legacy.timestampBase, shareTotali: legacy.shareTotali||1000,
           liquidita: legacy.liquidita||50000, tendenza: legacy.tendenza||0,
           attiva: legacy.attiva!==false, azioniVendute: sommaPossedutoTotale(aziendaId,'A')
@@ -928,7 +972,9 @@ function renderQuotazione(){
   const logoEl = document.getElementById('qLogo');
   const capsEl = document.getElementById('quoteCaps');
   if(!az){
-    document.getElementById('qName').textContent = "Seleziona un'azienda";
+    const qNameEl = document.getElementById('qName');
+    qNameEl.textContent = "Seleziona un'azienda";
+    qNameEl.classList.remove('clickable');
     document.getElementById('qSector').textContent = '—';
     document.getElementById('qPrice').textContent = '—';
     document.getElementById('qChange').textContent = '';
@@ -936,6 +982,7 @@ function renderQuotazione(){
     if(capsEl) capsEl.innerHTML = '';
     return;
   }
+  document.getElementById('qName').classList.add('clickable');
   if(capsEl){
     capsEl.innerHTML = `<span>Capitalizzazione di mercato: <b>${fmt(capitalizzazioneAzienda(az))}</b></span>` +
       (az.valoreTeorico!=null ? `<span>Valore teorico (admin): <b>${fmt(az.valoreTeorico)}</b></span>` : '');
@@ -972,14 +1019,15 @@ function storicoPrezzi(aziendaId, serieId, serie){
   return punti;
 }
 
-function renderChart(){
-  const canvas = document.getElementById('chart');
+// Disegna un grafico a linea generico dentro "canvas" a partire da un
+// array di punti {t,p}. Riusata sia per il grafico principale del
+// mercato sia per i 3 mini-grafici nel dettaglio azienda (sola lettura).
+function disegnaGraficoLinea(canvas, dati){
+  if(!canvas) return;
   const ctx = canvas.getContext('2d');
   const w = canvas.width, h = canvas.height;
   ctx.clearRect(0,0,w,h);
-  const serie = serieCorrente();
-  if(!serie){ ctx.fillStyle='#8a7a7d'; ctx.font='13px IBM Plex Mono'; ctx.fillText('Nessun dato da visualizzare.',20,h/2); return; }
-  const dati = storicoPrezzi(aziendaSelezionata, serieSelezionata, serie).slice(-60);
+  if(!dati || !dati.length){ ctx.fillStyle='#8a7a7d'; ctx.font='13px IBM Plex Mono'; ctx.fillText('Nessun dato da visualizzare.',20,h/2); return; }
   const prezzi = dati.map(d=>d.p);
   const min = Math.min(...prezzi), max = Math.max(...prezzi);
   const pad = (max-min)*0.12 || max*0.05 || 1;
@@ -1005,36 +1053,138 @@ function renderChart(){
   grad.addColorStop(1,'rgba(0,0,0,0)');
   ctx.fillStyle = grad; ctx.fill();
 }
+function renderChart(){
+  const canvas = document.getElementById('chart');
+  const serie = serieCorrente();
+  const dati = serie ? storicoPrezzi(aziendaSelezionata, serieSelezionata, serie).slice(-60) : null;
+  disegnaGraficoLinea(canvas, dati);
+}
 
-function renderPieChart(){
-  const canvas = document.getElementById('pieChart');
-  const legend = document.getElementById('pieLegend');
-  if(!canvas || !legend) return;
+// Disegna un grafico a torta generico dentro "canvas" a partire da un
+// array di fette {label, qty, colore} e da un totale (denominatore).
+// Riusata per "Distribuzione tipo di azioni" (mercato) e per le due
+// torte "Proprietà economica"/"Proprietà effettiva" nel dettaglio azienda.
+function disegnaGraficoTorta(canvas, legend, fette, totale){
+  if(!canvas) return;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  const az = AZIENDE[aziendaSelezionata];
-  const serie = serieCorrente();
-  if(!az || !serie){ legend.innerHTML = '<span class="muted">Seleziona un\'azienda.</span>'; return; }
-  const shareTotali = serie.shareTotali||0;
-  const titolari = possessoPerInvestitore(aziendaSelezionata, serieSelezionata);
-  const totalePossedute = titolari.reduce((s,t)=>s+t.qty,0);
-  const flottante = Math.max(0, shareTotali - totalePossedute);
-  if(shareTotali<=0 || (!titolari.length && flottante<=0)){
-    legend.innerHTML = '<span class="muted">Nessun dato di proprietà per questa serie.</span>';
+  if(!fette.length || totale<=0){
+    if(legend) legend.innerHTML = '<span class="muted">Nessun dato disponibile.</span>';
     return;
   }
-  const fette = titolari.map((t,i)=>({label:t.u, qty:t.qty, colore:PALETTE[i%PALETTE.length]}));
-  if(flottante>0) fette.push({label:'Non ancora assegnate', qty:flottante, colore:'#4a3e42'});
   const cx=canvas.width/2, cy=canvas.height/2, r=Math.min(cx,cy)-4;
   let inizio = -Math.PI/2;
   fette.forEach(f=>{
-    const angolo = (f.qty/shareTotali)*2*Math.PI;
+    const angolo = (f.qty/totale)*2*Math.PI;
     ctx.beginPath(); ctx.moveTo(cx,cy);
     ctx.arc(cx,cy,r,inizio,inizio+angolo);
     ctx.closePath(); ctx.fillStyle=f.colore; ctx.fill();
     inizio += angolo;
   });
-  legend.innerHTML = fette.map(f=>`<div class="legend-item"><span class="dot" style="background:${f.colore}"></span>${f.label} — ${((f.qty/shareTotali)*100).toFixed(1)}% (${f.qty})</div>`).join('');
+  if(legend) legend.innerHTML = fette.map(f=>`<div class="legend-item"><span class="dot" style="background:${f.colore}"></span>${f.label} — ${((f.qty/totale)*100).toFixed(1)}% (${f.qty})</div>`).join('');
+}
+
+// "Distribuzione tipo di azioni": quanto pesa, sul totale delle azioni
+// emesse dall'azienda selezionata, ciascuno dei 3 tipi standard. È una
+// proprietà dell'AZIENDA intera, non della singola serie selezionata con
+// le pillole (che restano solo per il grafico prezzo/acquisto-vendita).
+function renderPieChart(){
+  const canvas = document.getElementById('pieChart');
+  const legend = document.getElementById('pieLegend');
+  if(!canvas || !legend) return;
+  const az = AZIENDE[aziendaSelezionata];
+  if(!az){ disegnaGraficoTorta(canvas, legend, [], 0); legend.innerHTML = '<span class="muted">Seleziona un\'azienda.</span>'; return; }
+  const serieMap = serieDiAzienda(az);
+  const perTipo = {};
+  Object.values(serieMap).forEach(serie=>{
+    const t = tipoSerie(serie);
+    perTipo[t] = (perTipo[t]||0) + (serie.shareTotali||0);
+  });
+  const totale = Object.values(perTipo).reduce((a,b)=>a+b,0);
+  const fette = Object.keys(perTipo).filter(t=>perTipo[t]>0).map(t=>({label:labelTipo(t), qty:perTipo[t], colore:TIPI_AZIONE[t].colore}));
+  if(!fette.length){ legend.innerHTML = '<span class="muted">Nessuna azione emessa per questa azienda.</span>'; return; }
+  disegnaGraficoTorta(canvas, legend, fette, totale);
+}
+
+// Aggrega, per investitore, il "peso" posseduto su TUTTE le serie
+// dell'azienda secondo la chiave indicata ('dividendoPeso' per la
+// proprietà economica, 'votoPeso' per quella effettiva/di controllo).
+// La parte di peso non assegnata ad alcun investitore viene etichettata
+// "Borsa di New Trino" invece di restare senza titolare.
+function possessoPesatoPerInvestitore(aziendaId, chiavePeso){
+  const az = AZIENDE[aziendaId];
+  if(!az) return { fette:[], totale:0 };
+  const serieMap = serieDiAzienda(az);
+  const pesoPerInvestitore = {};
+  let totalePeso = 0;
+  Object.keys(serieMap).forEach(sid=>{
+    const serie = serieMap[sid];
+    const peso = TIPI_AZIONE[tipoSerie(serie)][chiavePeso];
+    if(peso<=0) return;
+    totalePeso += (serie.shareTotali||0)*peso;
+    possessoPerInvestitore(aziendaId, sid).forEach(({u,qty})=>{
+      pesoPerInvestitore[u] = (pesoPerInvestitore[u]||0) + qty*peso;
+    });
+  });
+  const utenti = Object.keys(pesoPerInvestitore).filter(u=>pesoPerInvestitore[u]>0).sort((a,b)=>pesoPerInvestitore[b]-pesoPerInvestitore[a]);
+  const fette = utenti.map((u,i)=>({label:u, qty:pesoPerInvestitore[u], colore:PALETTE[i%PALETTE.length]}));
+  const assegnato = utenti.reduce((s,u)=>s+pesoPerInvestitore[u],0);
+  const flottante = Math.max(0, totalePeso - assegnato);
+  if(flottante>0) fette.push({label:LABEL_NON_ASSEGNATO, qty:flottante, colore:'#4a3e42'});
+  return { fette, totale: totalePeso };
+}
+
+// Dettaglio azienda: aperto cliccando sul nome dell'azienda selezionata.
+// Mostra tutti i grafici di variazione delle serie esistenti (sola
+// lettura, nessuna compravendita) e le due torte di proprietà.
+window.apriDettaglioAzienda = function(){
+  const az = AZIENDE[aziendaSelezionata];
+  if(!az) return;
+  const serieMap = serieDiAzienda(az);
+  const chiavi = Object.keys(serieMap);
+  const graficiHtml = chiavi.map(sid=>{
+    const serie = serieMap[sid];
+    const p = prezzoCorrente(serie, aziendaSelezionata+'-'+sid);
+    const varPct = serie.prezzoIniziale ? ((p - serie.prezzoIniziale)/serie.prezzoIniziale)*100 : 0;
+    const cls = varPct>=0.05?'up':varPct<=-0.05?'down':'flat';
+    const nomeSerie = serie.nome && serie.nome!==labelTipo(tipoSerie(serie)) ? serie.nome : labelTipo(tipoSerie(serie));
+    return `<div style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;gap:8px;flex-wrap:wrap;">
+        <b>${nomeSerie}</b>
+        <span>${fmt(p)} <span class="${cls}" style="font-size:11px;">${(varPct>=0?'+':'')+varPct.toFixed(2)}%</span></span>
+      </div>
+      <canvas id="modalChart-${sid}" class="modalMiniChart" width="700" height="140"></canvas>
+    </div>`;
+  }).join('') || '<p class="muted">Nessuna serie di azioni per questa azienda.</p>';
+
+  apriModal(az.nome, `
+    <div class="muted" style="font-size:11px;margin-bottom:12px;">Sola visualizzazione: da qui non è possibile comprare o vendere.</div>
+    ${graficiHtml}
+    <div class="panel" style="margin-top:4px;">
+      <h2>Proprietà economica</h2>
+      <div class="pie-wrap">
+        <canvas id="modalPieEcon" width="150" height="150"></canvas>
+        <div class="legend" id="modalPieEconLegend"></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-bottom:0;">
+      <h2>Proprietà effettiva</h2>
+      <div class="pie-wrap">
+        <canvas id="modalPieVoto" width="150" height="150"></canvas>
+        <div class="legend" id="modalPieVotoLegend"></div>
+      </div>
+    </div>
+  `, true);
+
+  chiavi.forEach(sid=>{
+    const canvas = document.getElementById('modalChart-'+sid);
+    const dati = storicoPrezzi(aziendaSelezionata, sid, serieMap[sid]).slice(-60);
+    disegnaGraficoLinea(canvas, dati);
+  });
+  const econ = possessoPesatoPerInvestitore(aziendaSelezionata, 'dividendoPeso');
+  disegnaGraficoTorta(document.getElementById('modalPieEcon'), document.getElementById('modalPieEconLegend'), econ.fette, econ.totale);
+  const voto = possessoPesatoPerInvestitore(aziendaSelezionata, 'votoPeso');
+  disegnaGraficoTorta(document.getElementById('modalPieVoto'), document.getElementById('modalPieVotoLegend'), voto.fette, voto.totale);
 }
 
 function renderFeedGlobale(){
@@ -1047,7 +1197,7 @@ function riassuntoOperazione(o){
   if(o.tipo==='buy') return `<b>${o.investitore}</b> ha acquistato ${o.quantita} × ${labelAzienda(o)} a ${fmt(o.prezzoEsecuzione)} <span class="muted">(${data})</span>`;
   if(o.tipo==='sell') return `<b>${o.investitore}</b> ha venduto ${o.quantita} × ${labelAzienda(o)} a ${fmt(o.prezzoEsecuzione)} <span class="muted">(${data})</span>`;
   if(o.tipo==='evento') return `<b>Evento — ${labelAzienda(o)}:</b> ${o.motivo} (${o.variazionePct>=0?'+':''}${o.variazionePct.toFixed(2)}%) <span class="muted">(${data})</span>`;
-  if(o.tipo==='dividendo') return `<b>Dividendo — ${labelAzienda(o)}:</b> distribuiti ${fmt(o.importoTotale)} agli azionisti <span class="muted">(${data})</span>`;
+  if(o.tipo==='dividendo') return `<b>Dividendo — ${AZIENDE[o.aziendaId] ? AZIENDE[o.aziendaId].nome : o.aziendaId}:</b> distribuiti ${fmt(o.importoTotale)} agli azionisti <span class="muted">(${data})</span>`;
   if(o.tipo==='admin-rettifica') return `<b>Admin:</b> saldo di ${o.investitore} modificato (${o.note||''}) <span class="muted">(${data})</span>`;
   if(o.tipo==='admin-azioni') return `<b>Admin:</b> ${o.direzione==='assegna'?'assegnate':'rimosse'} ${o.quantita} × ${labelAzienda(o)} a/da <b>${o.investitore}</b> <span class="muted">(${data})</span>`;
   if(o.tipo==='trasferimento-denaro') return `<b>${o.mittente}</b> ha trasferito ${fmt(o.importo)} a <b>${o.destinatario}</b> <span class="muted">(${data})</span>`;
@@ -1352,10 +1502,10 @@ window.dettaglioInvestitore = function(u){
 /* =====================================================================
    MODALE GENERICO
    ===================================================================== */
-function apriModal(titolo, htmlContenuto){
+function apriModal(titolo, htmlContenuto, largo){
   document.getElementById('modalRoot').innerHTML = `
     <div class="modalBg" onclick="if(event.target===this) chiudiModal()">
-      <div class="modalBox"><span class="closeX" onclick="chiudiModal()">✕</span><h3>${titolo}</h3>${htmlContenuto}</div>
+      <div class="modalBox${largo?' modalBoxLarge':''}"><span class="closeX" onclick="chiudiModal()">✕</span><h3>${titolo}</h3>${htmlContenuto}</div>
     </div>`;
 }
 window.chiudiModal = function(){ document.getElementById('modalRoot').innerHTML=''; }
@@ -1372,7 +1522,7 @@ function popolaSelectAziende(){
     sel.innerHTML = ids.length ? ids.map(id=>`<option value="${id}">${AZIENDE[id].nome}</option>`).join('') : '<option value="">Nessuna azienda</option>';
     if(cur && AZIENDE[cur] && !AZIENDE[cur].eliminata) sel.value = cur;
   });
-  [['evAzienda','evSerie'],['dvAzienda','dvSerie'],['meAzienda','meSerie'],['azAzienda','azSerie']].forEach(([a,s])=>{
+  [['evAzienda','evSerie'],['meAzienda','meSerie'],['azAzienda','azSerie']].forEach(([a,s])=>{
     if(document.getElementById(a) && document.getElementById(s)) popolaSerieSelect(s,a);
   });
   const selInv = document.getElementById('azInvestitore');
@@ -1397,7 +1547,7 @@ window.adminCreaAzienda = async function(){
   const nome = document.getElementById('acNome').value.trim();
   const settore = document.getElementById('acSettore').value.trim() || 'Generico';
   const logoUrl = document.getElementById('acLogo').value.trim();
-  const nomeSerie = document.getElementById('acSerieNome').value.trim() || 'Azioni Ordinarie';
+  const tipoSerieScelto = document.getElementById('acTipoSerie').value;
   const prezzo = parseFloat(document.getElementById('acPrezzo').value);
   const shareTotali = parseInt(document.getElementById('acShare').value);
   const liquidita = parseFloat(document.getElementById('acLiquidita').value);
@@ -1409,7 +1559,7 @@ window.adminCreaAzienda = async function(){
   await set(nuovaRef, {
     nome, settore, logoUrl: logoUrl||null, valoreTeorico, creato: Date.now(), attiva: true,
     serie: { A: {
-      nome: nomeSerie, prezzoBase: prezzo, prezzoIniziale: prezzo, timestampBase: Date.now(),
+      nome: labelTipo(tipoSerieScelto), tipo: tipoSerieScelto, prezzoBase: prezzo, prezzoIniziale: prezzo, timestampBase: Date.now(),
       shareTotali: shareTotali||1000, azioniVendute: 0,
       liquidita: liquidita||50000, tendenza: isNaN(tendenza)?0:tendenza, attiva: true
     }}
@@ -1422,20 +1572,23 @@ window.adminCreaAzienda = async function(){
 
 window.adminAggiungiSerie = async function(){
   const id = document.getElementById('asAzienda').value;
-  const nome = document.getElementById('asNome').value.trim() || 'Nuova serie';
+  const tipo = document.getElementById('asTipo').value;
   const prezzo = parseFloat(document.getElementById('asPrezzo').value);
   const shareTotali = parseInt(document.getElementById('asShare').value);
   const liquidita = parseFloat(document.getElementById('asLiquidita').value);
   const tendenza = parseFloat(document.getElementById('asTendenza').value)/100;
   if(!id){ mostraToast("Seleziona un'azienda."); return; }
   if(!prezzo||prezzo<=0){ mostraToast('Prezzo iniziale non valido.'); return; }
+  const serieMap = serieDiAzienda(AZIENDE[id]);
+  const stessoTipo = Object.values(serieMap).filter(s=>tipoSerie(s)===tipo).length;
+  const nome = labelTipo(tipo) + (stessoTipo>0 ? ' #'+(stessoTipo+1) : '');
   const nuovaSerieRef = push(ref(db,'aziende/'+id+'/serie'));
   await set(nuovaSerieRef, {
-    nome, prezzoBase:prezzo, prezzoIniziale:prezzo, timestampBase:Date.now(),
+    nome, tipo, prezzoBase:prezzo, prezzoIniziale:prezzo, timestampBase:Date.now(),
     shareTotali: shareTotali||1000, azioniVendute:0,
     liquidita: liquidita||50000, tendenza: isNaN(tendenza)?0:tendenza, attiva:true
   });
-  document.getElementById('asNome').value=''; document.getElementById('asPrezzo').value='';
+  document.getElementById('asPrezzo').value='';
   mostraToast('Nuova serie aggiunta.');
 }
 
@@ -1454,7 +1607,7 @@ window.caricaSerieModifica = function(){
   const serieId = document.getElementById('meSerie').value;
   const az = AZIENDE[id]; if(!az) return;
   const serie = serieDiAzienda(az)[serieId]; if(!serie) return;
-  document.getElementById('meSerieNome').value = serie.nome||'';
+  document.getElementById('meSerieTipo').value = tipoSerie(serie);
   document.getElementById('meShareTotali').value = serie.shareTotali||0;
   document.getElementById('meLiquidita').value = serie.liquidita||0;
   document.getElementById('meTendenza').value = ((serie.tendenza||0)*100).toFixed(2);
@@ -1569,14 +1722,18 @@ window.adminSalvaSerie = async function(){
   const id = document.getElementById('meAzienda').value;
   const serieId = document.getElementById('meSerie').value;
   if(!id||!serieId){ mostraToast("Seleziona azienda e serie."); return; }
-  const nome = document.getElementById('meSerieNome').value.trim() || 'Azioni Ordinarie';
+  const tipo = document.getElementById('meSerieTipo').value;
   const shareTotali = parseInt(document.getElementById('meShareTotali').value);
   const liquidita = parseFloat(document.getElementById('meLiquidita').value);
   const tendenza = parseFloat(document.getElementById('meTendenza').value)/100;
   if(!shareTotali||shareTotali<=0){ mostraToast('Azioni totali non valide.'); return; }
   try{
+    const serieMap = serieDiAzienda(AZIENDE[id]);
+    const altreStessoTipo = Object.keys(serieMap).filter(sid=>sid!==serieId && tipoSerie(serieMap[sid])===tipo).length;
+    const nome = labelTipo(tipo) + (altreStessoTipo>0 ? ' #'+(altreStessoTipo+1) : '');
     await transazioneSuSerie(id, serieId, serie=>{
       if(shareTotali < (serie.azioniVendute||0)) throw new Error('Non puoi scendere sotto le '+(serie.azioniVendute||0)+' azioni già in circolazione.');
+      serie.tipo = tipo;
       serie.nome = nome;
       serie.shareTotali = shareTotali;
       serie.liquidita = liquidita>0 ? liquidita : (serie.liquidita||50000);
@@ -1617,27 +1774,40 @@ window.adminApplicaEvento = async function(){
 
 window.adminDistribuisciDividendo = async function(){
   const id = document.getElementById('dvAzienda').value;
-  const serieId = document.getElementById('dvSerie').value;
   const importo = parseFloat(document.getElementById('dvImporto').value);
   const az = AZIENDE[id];
-  if(!az||!serieId){ mostraToast("Seleziona azienda e serie."); return; }
-  const serie = serieDiAzienda(az)[serieId];
-  if(!serie){ mostraToast('Serie non trovata.'); return; }
+  if(!az){ mostraToast("Seleziona un'azienda."); return; }
   if(!importo || importo<=0){ mostraToast('Inserisci un importo valido.'); return; }
-  const shareTotali = serie.shareTotali || 1000;
 
-  const beneficiari = possessoPerInvestitore(id, serieId);
-  if(!beneficiari.length){ mostraToast('Nessun azionista possiede quote di questa serie.'); return; }
+  // Dividendo unico d'azienda: ripartito in base al "dividendoPeso" del
+  // tipo di ciascuna serie (Ordinarie=1, Prioritarie=2 → quota doppia e
+  // con priorità, Plurivoto=0 → nessun dividendo). Le azioni non ancora
+  // assegnate ad alcun investitore non ricevono nulla (restano fuori dal
+  // riparto, come già avveniva prima per serie).
+  const serieMap = serieDiAzienda(az);
+  const pesoPerInvestitore = {};
+  let pesoTotaleEmesso = 0;
+  Object.keys(serieMap).forEach(sid=>{
+    const serie = serieMap[sid];
+    const peso = TIPI_AZIONE[tipoSerie(serie)].dividendoPeso;
+    if(peso<=0) return;
+    pesoTotaleEmesso += (serie.shareTotali||0)*peso;
+    possessoPerInvestitore(id, sid).forEach(({u,qty})=>{
+      pesoPerInvestitore[u] = (pesoPerInvestitore[u]||0) + qty*peso;
+    });
+  });
+  const beneficiari = Object.keys(pesoPerInvestitore).filter(u=>pesoPerInvestitore[u]>0);
+  if(!beneficiari.length || pesoTotaleEmesso<=0){ mostraToast('Nessun azionista con diritto a dividendo per questa azienda.'); return; }
 
-  for(const {u, qty} of beneficiari){
-    const quota = (qty/shareTotali) * importo;
+  for(const u of beneficiari){
+    const quota = (pesoPerInvestitore[u]/pesoTotaleEmesso) * importo;
     await runTransaction(ref(db,'investitori/'+u+'/pub'), pub=>{
       if(!pub) return pub;
       pub.saldo = (pub.saldo||0) + quota;
       return pub;
     });
   }
-  await push(ref(db,'operazioni'), { tipo:'dividendo', aziendaId:id, serieId, importoTotale:importo, timestamp: Date.now() });
+  await push(ref(db,'operazioni'), { tipo:'dividendo', aziendaId:id, importoTotale:importo, timestamp: Date.now() });
   document.getElementById('dvImporto').value='';
   mostraToast('Dividendo distribuito a '+beneficiari.length+' azionisti.');
 }
