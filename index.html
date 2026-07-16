@@ -450,7 +450,10 @@
           <div><label>Commissione di negoziazione % (su acquisti e vendite)</label><input type="number" id="cfgCommissione" step="0.05" min="0"></div>
           <div><label>Limite max acquisto/vendita per operazione (% delle azioni totali della serie)</label><input type="number" id="cfgLimiteOrdine" step="1" min="1" max="100"></div>
         </div>
-        <div class="muted" style="font-size:11px;margin:4px 0 0;">Il limite impedisce a chiunque di comprare o vendere in un colpo solo una frazione troppo grande di un'azienda, evitando crolli o impennate innaturali del prezzo. Non si applica alle operazioni admin "assegna/rimuovi" o "opera per conto di".</div>
+        <div class="row2">
+          <div><label>Fattore velocità scambi (amplifica l'impatto se si negozia molto in poco tempo)</label><input type="number" id="cfgVelocita" step="0.1" min="0"></div>
+        </div>
+        <div class="muted" style="font-size:11px;margin:4px 0 0;">Il limite impedisce a chiunque di comprare o vendere in un colpo solo una frazione troppo grande di un'azienda, evitando crolli o impennate innaturali del prezzo. Non si applica alle operazioni admin "assegna/rimuovi" o "opera per conto di". Il fattore velocità fa sì che tante azioni scambiate in poco tempo (es. 500 in un minuto) muovano il prezzo più di poche azioni scambiate diluite nel tempo (es. 1 ogni minuto per 500 minuti), anche a parità di volume totale; a 0 questo effetto è disattivato.</div>
         <button class="btn-amber" style="margin-top:12px;" onclick="adminSalvaConfig()">Salva impostazioni</button>
         <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;">
           <label>Nuova password amministratore</label>
@@ -533,11 +536,16 @@ if(!firebaseOk){
 }
 
 /* ---------------- stato locale ---------------- */
-let CONFIG = { valutaNome:"Diamanti", valutaSimbolo:"💎", saldoIniziale:0, impactFactor:0.5, commissionePct:0.5, limiteOrdinePct:20, borsaSospesa:false, borsaSospesaFino:null };
+let CONFIG = { valutaNome:"Diamanti", valutaSimbolo:"💎", saldoIniziale:0, impactFactor:0.5, commissionePct:2, velocitaFactor:1, limiteOrdinePct:20, borsaSospesa:false, borsaSospesaFino:null };
 // Tetto di sicurezza assoluto sull'impatto di un singolo ordine sul prezzo (indipendente
 // dalle impostazioni admin): impedisce che una vendita/acquisto enorme spinga il prezzo
 // a zero o sotto zero, causando un collasso da cui il mercato non riesce più a risalire.
 const IMPATTO_MAX = 0.6;
+// Finestra temporale (ms) usata per "ricordare" il controvalore scambiato di recente su
+// una serie: più scambi (di acquisto O vendita) avvengono ravvicinati nel tempo, più il
+// loro effetto sul prezzo viene amplificato. Se lo stesso volume viene invece scambiato
+// diluito nel tempo, la "memoria" decade e l'effetto torna a quello base.
+const VELOCITA_FINESTRA_MS = 10*60*1000; // 10 minuti
 // Per quanto tempo un'azienda eliminata resta ripristinabile dal cestino (ms).
 const FINESTRA_RIPRISTINO_MS = 30*24*3600*1000; // 30 giorni
 let AZIENDE = {};       // id -> oggetto azienda (nome, settore, logoUrl, serie:{id:{...}})
@@ -598,10 +606,7 @@ function prezzoCorrente(serie, seedId, now){
   if(isBorsaSospesa()) return serie.prezzoBase;
   const giorni = (now - serie.timestampBase) / 86400000;
   const trend = Math.exp((serie.tendenza||0) * giorni);
-  const fase = hashFase(seedId);
-  const periodoMs = 6*3600000; // ciclo di 6 ore
-  const osc = 1 + 0.01*Math.sin((now/periodoMs)*2*Math.PI + fase);
-  return Math.max(0.01, serie.prezzoBase * trend * osc);
+  return Math.max(0.01, serie.prezzoBase * trend);
 }
 
 /* =====================================================================
@@ -1062,7 +1067,12 @@ window.aggiornaStima = function(){
   const qty = parseInt(document.getElementById('inQty').value)||0;
   if(!serie || !qty){ document.getElementById('stimaCosto').value = '—'; return; }
   const p = prezzoCorrente(serie, aziendaSelezionata+'-'+serieSelezionata);
-  const impatto = (CONFIG.impactFactor||0.5) * ((p*qty)/(serie.liquidita||50000));
+  const trascorsoMs = Date.now() - (serie.volumeTimestamp||Date.now());
+  const decadimento = Math.exp(-trascorsoMs/VELOCITA_FINESTRA_MS);
+  const volumeRecente = (serie.volumeRecente||0) * decadimento;
+  const velocitaFactor = CONFIG.velocitaFactor!=null ? CONFIG.velocitaFactor : 1;
+  const moltiplicatoreVelocita = 1 + velocitaFactor * (volumeRecente/(serie.liquidita||50000));
+  const impatto = (CONFIG.impactFactor||0.5) * ((p*qty)/(serie.liquidita||50000)) * moltiplicatoreVelocita;
   const pEsecuzioneStimato = (p + p*(1+impatto))/2; // stima indicativa (per la vendita il segno si inverte all'esecuzione)
   const costo = pEsecuzioneStimato*qty*(1+(CONFIG.commissionePct||0)/100);
   document.getElementById('stimaCosto').value = fmt(costo);
@@ -1097,7 +1107,19 @@ async function eseguiOrdine(username, aziendaId, serieId, qty, tipo, bypassLimit
     }
     const pAttuale = prezzoCorrente(serie, aziendaId+'-'+serieId);
     const valoreOrdineMid = pAttuale*qty;
-    let impatto = (CONFIG.impactFactor||0.5) * (valoreOrdineMid/(serie.liquidita||50000));
+    const adesso = Date.now();
+    // "Memoria" del controvalore scambiato di recente su questa serie (acquisti E vendite
+    // insieme), con decadimento esponenziale nel tempo: se molte azioni vengono scambiate
+    // ravvicinate (es. 500 azioni in un minuto), la memoria resta alta e amplifica l'impatto
+    // sul prezzo; se lo stesso volume è diluito nel tempo (es. 1 azione ogni minuto per 500
+    // minuti), la memoria decade quasi del tutto tra un ordine e l'altro e l'impatto resta
+    // quello base.
+    const trascorsoMs = adesso - (serie.volumeTimestamp||adesso);
+    const decadimento = Math.exp(-trascorsoMs/VELOCITA_FINESTRA_MS);
+    const volumeRecentePrima = (serie.volumeRecente||0) * decadimento;
+    const velocitaFactor = CONFIG.velocitaFactor!=null ? CONFIG.velocitaFactor : 1;
+    const moltiplicatoreVelocita = 1 + velocitaFactor * (volumeRecentePrima/(serie.liquidita||50000));
+    let impatto = (CONFIG.impactFactor||0.5) * (valoreOrdineMid/(serie.liquidita||50000)) * moltiplicatoreVelocita;
     // Tetto di sicurezza: senza questo, un ordine molto grande rispetto alla
     // liquidità configurata può generare un impatto oltre il 100%, portando
     // il prezzo a zero (o sotto), da cui il mercato non riesce più a risalire
@@ -1121,6 +1143,8 @@ async function eseguiOrdine(username, aziendaId, serieId, qty, tipo, bypassLimit
     commissione = commissioneOrdine;
     serie.prezzoBase = prezzoDopo;
     serie.timestampBase = Date.now();
+    serie.volumeRecente = volumeRecentePrima + valoreOrdineMid;
+    serie.volumeTimestamp = adesso;
     serie.azioniVendute = Math.max(0, (serie.azioniVendute||0) + (tipo==='buy'?qty:-qty));
     return serie;
   });
@@ -1663,8 +1687,9 @@ function renderAdmin(){
     document.getElementById('cfgValutaSimbolo').value = CONFIG.valutaSimbolo||'';
     document.getElementById('cfgSaldoIniziale').value = CONFIG.saldoIniziale||0;
     document.getElementById('cfgImpact').value = CONFIG.impactFactor||0.5;
-    document.getElementById('cfgCommissione').value = CONFIG.commissionePct||0;
+    document.getElementById('cfgCommissione').value = CONFIG.commissionePct!=null ? CONFIG.commissionePct : 2;
     document.getElementById('cfgLimiteOrdine').value = CONFIG.limiteOrdinePct!=null ? CONFIG.limiteOrdinePct : 20;
+    document.getElementById('cfgVelocita').value = CONFIG.velocitaFactor!=null ? CONFIG.velocitaFactor : 1;
   }
   const el = document.getElementById('adminInvestitori');
   const utenti = Object.keys(INVESTITORI);
@@ -1724,7 +1749,8 @@ window.adminSalvaConfig = async function(){
     valutaSimbolo: document.getElementById('cfgValutaSimbolo').value.trim() || '💎',
     saldoIniziale: parseFloat(document.getElementById('cfgSaldoIniziale').value) || 0,
     impactFactor: parseFloat(document.getElementById('cfgImpact').value) || 0.5,
-    commissionePct: parseFloat(document.getElementById('cfgCommissione').value) || 0,
+    commissionePct: parseFloat(document.getElementById('cfgCommissione').value) >= 0 ? parseFloat(document.getElementById('cfgCommissione').value) : 2,
+    velocitaFactor: parseFloat(document.getElementById('cfgVelocita').value) >= 0 ? parseFloat(document.getElementById('cfgVelocita').value) : 1,
     limiteOrdinePct: Math.min(100, Math.max(1, parseFloat(document.getElementById('cfgLimiteOrdine').value) || 20))
   };
   await update(ref(db,'config'), nuovaConfig);
@@ -1751,7 +1777,7 @@ async function controllaPrimoAvvio(){
     const pass = prompt('Primo avvio rilevato: imposta ora la password amministratore per questa borsa.');
     if(pass && pass.length>=4){
       const hash = await sha256(pass);
-      await set(ref(db,'config'), { valutaNome:"Diamanti", valutaSimbolo:"💎", saldoIniziale:100, impactFactor:0.5, commissionePct:0.5, limiteOrdinePct:20, borsaSospesa:false, borsaSospesaFino:null, adminPassHash: hash });
+      await set(ref(db,'config'), { valutaNome:"Diamanti", valutaSimbolo:"💎", saldoIniziale:100, impactFactor:0.5, commissionePct:2, velocitaFactor:1, limiteOrdinePct:20, borsaSospesa:false, borsaSospesaFino:null, adminPassHash: hash });
       mostraToast('Password amministratore impostata. Ora puoi accedere dalla scheda Admin.');
     }
   }
