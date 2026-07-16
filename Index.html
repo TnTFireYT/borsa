@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -81,6 +81,9 @@
   .co-item .settore{font-size:10.5px;color:#a89b9d;text-transform:uppercase;}
   .co-logo{width:22px;height:22px;border-radius:5px;object-fit:cover;background:#0e0c0d;border:1px solid var(--border);}
   #qLogo{width:34px;height:34px;border-radius:7px;object-fit:cover;background:#0e0c0d;border:1px solid var(--border);vertical-align:middle;margin-right:8px;}
+  .avatar-sm{width:18px;height:18px;border-radius:50%;object-fit:cover;background:#0e0c0d;border:1px solid var(--border);vertical-align:middle;margin-right:6px;}
+  .avatar-header{width:22px;height:22px;border-radius:50%;object-fit:cover;background:#0e0c0d;border:1px solid var(--border);vertical-align:middle;margin-right:6px;}
+  .avatar-profile{width:56px;height:56px;border-radius:50%;object-fit:cover;background:#0e0c0d;border:1px solid var(--border);}
 
   canvas{width:100%;display:block;background:#0e0c0d;border:1px solid var(--border);border-radius:8px;}
   .quote-price{font-size:30px;font-weight:700;font-family:var(--disp);}
@@ -194,7 +197,7 @@
 <div id="app">
   <header class="top">
     <div class="brand">BORSA DI <span>NEW TRINO</span></div>
-    <div class="who">Connesso come <b id="whoName">—</b> <span id="whoBadge" class="badge hidden">ADMIN</span>
+    <div class="who"><img id="whoAvatar" class="avatar-header hidden" alt="">Connesso come <b id="whoName">—</b> <span id="whoBadge" class="badge hidden">ADMIN</span>
       &nbsp;·&nbsp; <a class="link" onclick="logout()">esci</a>
     </div>
   </header>
@@ -278,6 +281,25 @@
     <!-- ---------- IL MIO CONTO ---------- -->
     <div id="tab-conto" class="tabpane hidden">
       <div class="panel">
+        <h2>Il mio profilo</h2>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+          <img id="ctAvatarPreview" class="avatar-profile hidden" alt="">
+          <div style="flex:1;">
+            <label style="margin-top:0;">Immagine profilo (URL, es. link imgur/drive)</label>
+            <input type="text" id="ctAvatarUrl" placeholder="https://i.imgur.com/xxxx.png">
+          </div>
+        </div>
+        <button class="btn-ghost" onclick="utenteSalvaAvatar()">Salva immagine</button>
+        <div style="margin-top:18px;border-top:1px solid var(--border);padding-top:12px;">
+          <label style="margin-top:0;">Cambia la tua password</label>
+          <div class="row2">
+            <input type="password" id="ctNuovaPass" placeholder="Nuova password">
+            <input type="password" id="ctNuovaPass2" placeholder="Conferma nuova password">
+          </div>
+          <button class="btn-amber" style="margin-top:10px;" onclick="utenteCambiaPassword()">Aggiorna password</button>
+        </div>
+      </div>
+      <div class="panel">
         <h2>Riepilogo</h2>
         <table>
           <tr><td>Liquidità</td><td id="ctSaldo" style="text-align:right;font-weight:600;">—</td></tr>
@@ -321,11 +343,24 @@
         <div id="listaOfferte"><span class="muted">Nessuna offerta aperta al momento.</span></div>
       </div>
       <div class="panel">
+        <h2>Trasferisci azioni direttamente</h2>
+        <div class="muted" style="font-size:11px;margin-bottom:10px;">Regala azioni a un altro investitore senza passare dalla bacheca offerte qui sopra. Come su ogni altra operazione, l'amministratore applica la commissione di negoziazione configurata: viene calcolata sul valore di mercato attuale delle azioni trasferite ed è a tuo carico, addebitata in liquidità (le azioni arrivano al destinatario per intero).</div>
+        <label>Destinatario</label><select id="trAzDest" onchange="aggiornaStimaTrasferimentoAzioni()"></select>
+        <label>Azienda</label><select id="trAzAzienda" onchange="popolaSerieSelect('trAzSerie','trAzAzienda'); aggiornaStimaTrasferimentoAzioni()"></select>
+        <div class="row2">
+          <div><label>Serie</label><select id="trAzSerie" onchange="aggiornaStimaTrasferimentoAzioni()"></select></div>
+          <div><label>Quantità</label><input type="number" id="trAzQty" value="1" min="1" step="1" oninput="aggiornaStimaTrasferimentoAzioni()"></div>
+        </div>
+        <div class="muted" style="font-size:11.5px;margin-top:8px;">Commissione stimata a tuo carico: <b id="trAzCommissione">—</b></div>
+        <button class="btn-amber" style="width:100%;margin-top:12px;" onclick="eseguiTrasferimentoAzioni()">Trasferisci azioni</button>
+      </div>
+      <div class="panel">
         <h2>Regala denaro</h2>
         <label>Destinatario</label><select id="trDenDest"></select>
-        <label>Importo</label><input type="number" id="trDenImporto" min="0.01" step="0.01">
+        <label>Importo</label><input type="number" id="trDenImporto" min="0.01" step="0.01" oninput="aggiornaStimaTrasferimentoDenaro()">
+        <div class="muted" style="font-size:11.5px;margin-top:6px;">Il destinatario riceverà: <b id="trDenNetto">—</b> (l'amministratore trattiene la commissione di negoziazione sull'importo)</div>
         <button class="btn-green" style="width:100%;margin-top:12px;" onclick="eseguiTrasferimentoDenaro()">Invia denaro</button>
-        <div class="muted" style="font-size:11px;margin-top:8px;">Il trasferimento diretto di azioni fra investitori non esiste più: ogni passaggio di azioni deve passare dalla bacheca offerte qui sopra, così il prezzo di mercato riflette sempre gli scambi realmente avvenuti.</div>
+        <div class="muted" style="font-size:11px;margin-top:8px;">Tu paghi sempre l'importo pieno indicato; la commissione viene trattenuta dalla cifra che arriva al destinatario.</div>
       </div>
       <div class="panel">
         <h2>Le mie attività recenti</h2>
@@ -337,6 +372,7 @@
     <div id="tab-classifica" class="tabpane hidden">
       <div class="panel">
         <h2>Classifica investitori per patrimonio</h2>
+        <input type="text" id="classificaSearch" placeholder="🔎 Cerca investitore..." oninput="renderClassifica()" style="margin-bottom:10px;">
         <table><thead><tr><th></th><th>Investitore</th><th style="text-align:right;">Patrimonio</th></tr></thead>
         <tbody id="classificaBody"></tbody></table>
       </div>
@@ -478,6 +514,17 @@
       <div class="panel" data-admin-panel>
         <h2>Gestisci investitori</h2>
         <div id="adminInvestitori"></div>
+      </div>
+
+      <div class="panel" data-admin-panel>
+        <h2>Archivio investitori</h2>
+        <div class="muted" style="font-size:11px;margin-bottom:8px;">Investitori bloccati volontariamente (non possono più accedere né operare): restano qui per sempre, senza scadenza, finché non li ripristini o li elimini definitivamente.</div>
+        <div id="adminArchivioInvestitori"><span class="muted">Nessun investitore archiviato.</span></div>
+      </div>
+
+      <div class="panel" data-admin-panel>
+        <h2>Cestino investitori eliminati</h2>
+        <div id="adminCestinoInvestitori"><span class="muted">Nessun investitore eliminato.</span></div>
       </div>
 
       <div class="panel" data-admin-panel>
@@ -806,6 +853,13 @@ function possessoPerInvestitore(aziendaId, serieId){
     .filter(x=>x.qty>0)
     .sort((a,b)=>b.qty-a.qty);
 }
+function investitoriAttivi(){
+  return Object.keys(INVESTITORI).filter(u=>!INVESTITORI[u].eliminato && !INVESTITORI[u].archiviato);
+}
+function avatarImg(u){
+  const url = (INVESTITORI[u]||{}).avatarUrl;
+  return url ? `<img src="${url}" class="avatar-sm" alt="" onerror="this.style.display='none'">` : '';
+}
 function labelAzienda(o){
   const az = AZIENDE[o.aziendaId];
   if(!az) return o.aziendaId || '';
@@ -903,6 +957,10 @@ window.eseguiLogin = async function(){
   if(!snap.exists()){ loginMsg('Investitore non trovato.'); return; }
   const hash = await sha256(pass);
   if(snap.val().passHash !== hash){ loginMsg('Password errata.'); return; }
+  const pubSnap = await get(ref(db, 'investitori/'+user+'/pub'));
+  const pub = pubSnap.exists() ? pubSnap.val() : {};
+  if(pub.eliminato){ loginMsg('Questo account è stato eliminato dall\'amministratore.'); return; }
+  if(pub.archiviato){ loginMsg('Questo account è stato archiviato dall\'amministratore: accesso sospeso.'); return; }
   sessione = { tipo:'investitore', username: user };
   entraInApp();
 }
@@ -995,11 +1053,18 @@ function refreshPrezziLive(){ renderBannerSospensione(); renderListaAziende(); r
 function renderTutto(){
   renderBannerSospensione();
   renderListaAziende(); renderQuotazione(); renderChart(); renderSeriePills(); renderPieChart(); renderFeedGlobale();
-  aggiornaStima(); popolaSelectAziende();
+  aggiornaStima(); popolaSelectAziende(); renderWhoAvatar();
   if(!document.getElementById('tab-conto').classList.contains('hidden')) renderConto();
   if(!document.getElementById('tab-trasferisci').classList.contains('hidden')) renderTrasferimenti();
   if(!document.getElementById('tab-classifica').classList.contains('hidden')) renderClassifica();
   if(!document.getElementById('tab-admin').classList.contains('hidden')) renderAdmin();
+}
+function renderWhoAvatar(){
+  const el = document.getElementById('whoAvatar');
+  if(!el || !sessione) return;
+  const url = sessione.tipo==='investitore' ? (INVESTITORI[sessione.username]||{}).avatarUrl : null;
+  if(url){ el.src = url; el.classList.remove('hidden'); el.onerror = ()=>el.classList.add('hidden'); }
+  else el.classList.add('hidden');
 }
 function renderBannerSospensione(){
   const el = document.getElementById('banneSospensione');
@@ -1399,8 +1464,8 @@ function riassuntoOperazione(o){
   if(o.tipo==='dividendo') return `<b>Dividendo — ${AZIENDE[o.aziendaId] ? AZIENDE[o.aziendaId].nome : o.aziendaId}:</b> distribuiti ${fmt(o.importoTotale)} agli azionisti <span class="muted">(${data})</span>`;
   if(o.tipo==='admin-rettifica') return `<b>Admin:</b> saldo di ${o.investitore} modificato (${o.note||''}) <span class="muted">(${data})</span>`;
   if(o.tipo==='admin-azioni') return `<b>Admin:</b> ${o.direzione==='assegna'?'assegnate':'rimosse'} ${o.quantita} × ${labelAzienda(o)} a/da <b>${o.investitore}</b> <span class="muted">(${data})</span>`;
-  if(o.tipo==='trasferimento-denaro') return `<b>${o.mittente}</b> ha trasferito ${fmt(o.importo)} a <b>${o.destinatario}</b> <span class="muted">(${data})</span>`;
-  if(o.tipo==='trasferimento-azioni') return `<b>${o.mittente}</b> ha trasferito ${o.quantita} × ${labelAzienda(o)} a <b>${o.destinatario}</b> <span class="muted">(${data})</span>`;
+  if(o.tipo==='trasferimento-denaro') return `<b>${o.mittente}</b> ha trasferito ${fmt(o.importo)} a <b>${o.destinatario}</b>${o.commissione?' <span class="muted">(commissione: '+fmt(o.commissione)+')</span>':''} <span class="muted">(${data})</span>`;
+  if(o.tipo==='trasferimento-azioni') return `<b>${o.mittente}</b> ha trasferito ${o.quantita} × ${labelAzienda(o)} a <b>${o.destinatario}</b>${o.commissione?' <span class="muted">(commissione: '+fmt(o.commissione)+')</span>':''} <span class="muted">(${data})</span>`;
   if(o.tipo==='offerta-creata') return `<b>${o.mittente}</b> ha messo in vendita ${o.quantita} × ${labelAzienda(o)} per ${fmt(o.prezzoTotale)} <span class="muted">(${data})</span>`;
   if(o.tipo==='offerta-annullata') return `<b>${o.mittente}</b> ha ritirato un'offerta di vendita di ${o.quantita} × ${labelAzienda(o)} <span class="muted">(${data})</span>`;
   if(o.tipo==='offerta-scambio') return `<b>${o.acquirente}</b> ha comprato da <b>${o.venditore}</b> ${o.quantita} × ${labelAzienda(o)} per ${fmt(o.prezzoTotale)} <span class="muted">(${data})</span>`;
@@ -1410,6 +1475,10 @@ function riassuntoOperazione(o){
   if(o.tipo==='admin-ripristina-archivio') return `<b>Admin:</b> ha ripristinato dall'archivio l'azienda <b>${o.nomeAzienda||o.aziendaId}</b> <span class="muted">(${data})</span>`;
   if(o.tipo==='admin-sospendi-borsa') return `<b>Admin:</b> ha sospeso la borsa${o.fino?' fino alle '+new Date(o.fino).toLocaleString('it-IT'):' a tempo indeterminato'} <span class="muted">(${data})</span>`;
   if(o.tipo==='admin-riattiva-borsa') return `<b>Admin:</b> ha riattivato la borsa <span class="muted">(${data})</span>`;
+  if(o.tipo==='admin-archivia-investitore') return `<b>Admin:</b> ha archiviato l'investitore <b>${o.investitore}</b> <span class="muted">(${data})</span>`;
+  if(o.tipo==='admin-ripristina-archivio-investitore') return `<b>Admin:</b> ha ripristinato dall'archivio l'investitore <b>${o.investitore}</b> <span class="muted">(${data})</span>`;
+  if(o.tipo==='admin-elimina-investitore') return `<b>Admin:</b> ha eliminato l'investitore <b>${o.investitore}</b> <span class="muted">(${data})</span>`;
+  if(o.tipo==='admin-ripristina-investitore') return `<b>Admin:</b> ha ripristinato l'investitore <b>${o.investitore}</b> <span class="muted">(${data})</span>`;
   return `${o.tipo} <span class="muted">(${data})</span>`;
 }
 
@@ -1548,11 +1617,25 @@ async function eseguiOrdine(username, aziendaId, serieId, qty, tipo, bypassLimit
 function renderTrasferimenti(){
   if(!sessione || sessione.tipo==='admin') return;
   const destDen = document.getElementById('trDenDest');
-  const altri = Object.keys(INVESTITORI).filter(u=>u!==sessione.username);
+  const altri = investitoriAttivi().filter(u=>u!==sessione.username);
   if(destDen){
     const cur = destDen.value;
     destDen.innerHTML = altri.length ? altri.map(u=>`<option value="${u}">${u}</option>`).join('') : '<option value="">Nessun altro investitore</option>';
     if(cur && altri.includes(cur)) destDen.value = cur;
+  }
+  const destAz = document.getElementById('trAzDest');
+  if(destAz){
+    const cur = destAz.value;
+    destAz.innerHTML = altri.length ? altri.map(u=>`<option value="${u}">${u}</option>`).join('') : '<option value="">Nessun altro investitore</option>';
+    if(cur && altri.includes(cur)) destAz.value = cur;
+  }
+  const selTrAzAzienda = document.getElementById('trAzAzienda');
+  if(selTrAzAzienda){
+    const cur = selTrAzAzienda.value;
+    const ids = aziendeAttiveIds();
+    selTrAzAzienda.innerHTML = ids.length ? ids.map(id=>`<option value="${id}">${AZIENDE[id].nome}</option>`).join('') : '<option value="">Nessuna azienda</option>';
+    if(cur && AZIENDE[cur] && !AZIENDE[cur].eliminata) selTrAzAzienda.value = cur;
+    popolaSerieSelect('trAzSerie','trAzAzienda');
   }
   const selOffAzienda = document.getElementById('offAzienda');
   if(selOffAzienda){
@@ -1563,8 +1646,11 @@ function renderTrasferimenti(){
     popolaSerieSelect('offSerie','offAzienda');
   }
   renderOfferte();
+  aggiornaStimaTrasferimentoAzioni();
+  aggiornaStimaTrasferimentoDenaro();
   const mie = OPERAZIONI.filter(o=>
     (o.tipo==='trasferimento-denaro' && (o.mittente===sessione.username || o.destinatario===sessione.username)) ||
+    (o.tipo==='trasferimento-azioni' && (o.mittente===sessione.username || o.destinatario===sessione.username)) ||
     ((o.tipo==='offerta-creata'||o.tipo==='offerta-annullata') && o.mittente===sessione.username) ||
     (o.tipo==='offerta-scambio' && (o.venditore===sessione.username || o.acquirente===sessione.username))
   ).slice(0,30);
@@ -1717,6 +1803,15 @@ window.accettaOfferta = async function(id){
   mostraToast('Scambio concluso con '+off.venditore+'.');
 }
 
+window.aggiornaStimaTrasferimentoDenaro = function(){
+  const el = document.getElementById('trDenNetto');
+  if(!el) return;
+  const importo = parseFloat(document.getElementById('trDenImporto').value)||0;
+  if(!importo){ el.textContent = '—'; return; }
+  const commissione = importo*((CONFIG.commissionePct||0)/100);
+  el.textContent = fmt(importo-commissione) + ' (commissione: '+fmt(commissione)+')';
+}
+
 window.eseguiTrasferimentoDenaro = async function(){
   if(isBorsaSospesa()){ mostraToast('La borsa è sospesa: i trasferimenti sono momentaneamente disattivati.'); return; }
   const destinatario = document.getElementById('trDenDest').value;
@@ -1724,6 +1819,8 @@ window.eseguiTrasferimentoDenaro = async function(){
   if(!destinatario){ mostraToast('Seleziona un destinatario.'); return; }
   if(destinatario===sessione.username){ mostraToast('Non puoi trasferire denaro a te stesso.'); return; }
   if(!importo || importo<=0){ mostraToast('Importo non valido.'); return; }
+  const commissione = importo*((CONFIG.commissionePct||0)/100);
+  const netto = importo - commissione;
   try{
     let saldoScalato = false;
     await runTransaction(ref(db,'investitori/'+sessione.username+'/pub'), pub=>{
@@ -1735,11 +1832,12 @@ window.eseguiTrasferimentoDenaro = async function(){
     saldoScalato = true;
     await runTransaction(ref(db,'investitori/'+destinatario+'/pub'), pub=>{
       if(!pub) throw new Error('Destinatario non trovato.');
-      pub.saldo = (pub.saldo||0) + importo;
+      pub.saldo = (pub.saldo||0) + netto;
       return pub;
     });
-    await push(ref(db,'operazioni'), { tipo:'trasferimento-denaro', mittente:sessione.username, destinatario, importo, timestamp: Date.now() });
+    await push(ref(db,'operazioni'), { tipo:'trasferimento-denaro', mittente:sessione.username, destinatario, importo, commissione, timestamp: Date.now() });
     document.getElementById('trDenImporto').value = '';
+    aggiornaStimaTrasferimentoDenaro();
     mostraToast('Denaro trasferito a '+destinatario+'.');
   }catch(e){
     // se avevamo già scalato al mittente ma l'accredito al destinatario è fallito, rimborsa
@@ -1752,6 +1850,85 @@ window.eseguiTrasferimentoDenaro = async function(){
     }catch(e2){}
     mostraToast(e.message||'Trasferimento non riuscito.');
   }
+}
+
+/* =====================================================================
+   TRASFERIMENTO DIRETTO DI AZIONI fra investitori: reintrodotto su
+   richiesta, in aggiunta alla bacheca offerte. Non passa dal book di
+   mercato (il prezzo della serie non si muove), ma paga comunque la
+   commissione di negoziazione impostata dall'admin, calcolata sul
+   valore di mercato attuale delle azioni trasferite e addebitata in
+   liquidità al mittente (il destinatario riceve le azioni per intero).
+   ===================================================================== */
+window.aggiornaStimaTrasferimentoAzioni = function(){
+  const el = document.getElementById('trAzCommissione');
+  if(!el) return;
+  const aziendaId = document.getElementById('trAzAzienda') ? document.getElementById('trAzAzienda').value : null;
+  const serieId = document.getElementById('trAzSerie') ? document.getElementById('trAzSerie').value : null;
+  const qty = parseInt(document.getElementById('trAzQty') ? document.getElementById('trAzQty').value : 0)||0;
+  const az = aziendaId ? AZIENDE[aziendaId] : null;
+  const serie = az ? serieDiAzienda(az)[serieId] : null;
+  if(!serie || !qty){ el.textContent = '—'; return; }
+  const valore = prezzoCorrente(serie, aziendaId+'-'+serieId) * qty;
+  const commissione = valore*((CONFIG.commissionePct||0)/100);
+  el.textContent = fmt(commissione) + ' (valore di mercato stimato del lotto: '+fmt(valore)+')';
+}
+
+window.eseguiTrasferimentoAzioni = async function(){
+  if(isBorsaSospesa()){ mostraToast('La borsa è sospesa: i trasferimenti sono momentaneamente disattivati.'); return; }
+  if(!datiPronti()){ mostraToast('Dati ancora in caricamento, riprova tra un istante.'); return; }
+  const destinatario = document.getElementById('trAzDest').value;
+  const aziendaId = document.getElementById('trAzAzienda').value;
+  const serieId = document.getElementById('trAzSerie').value;
+  const qty = parseInt(document.getElementById('trAzQty').value);
+  if(!destinatario){ mostraToast('Seleziona un destinatario.'); return; }
+  if(destinatario===sessione.username){ mostraToast('Non puoi trasferire azioni a te stesso.'); return; }
+  if(!aziendaId||!serieId){ mostraToast("Seleziona un'azienda e una serie."); return; }
+  if(!qty||qty<=0){ mostraToast('Quantità non valida.'); return; }
+  const azStato = AZIENDE[aziendaId];
+  if(azStato && (azStato.archiviata||azStato.eliminata)){ mostraToast('Questa azienda non è più negoziabile.'); return; }
+  const serieRif = serieDiAzienda(azStato)[serieId];
+  if(!serieRif){ mostraToast('Serie non trovata.'); return; }
+  const valore = prezzoCorrente(serieRif, aziendaId+'-'+serieId) * qty;
+  const commissione = valore*((CONFIG.commissionePct||0)/100);
+  try{
+    await runTransaction(ref(db,'investitori/'+sessione.username+'/pub'), pub=>{
+      if(!pub) return pub;
+      pub.portafoglio = pub.portafoglio || {};
+      const possedute = getQty(pub.portafoglio, aziendaId, serieId);
+      if(qty>possedute) throw new Error('Non possiedi abbastanza azioni.');
+      if((pub.saldo||0) < commissione) throw new Error('Liquidità insufficiente per pagare la commissione di trasferimento ('+fmt(commissione)+').');
+      setQty(pub.portafoglio, aziendaId, serieId, possedute-qty);
+      pub.saldo = (pub.saldo||0) - commissione;
+      return pub;
+    });
+  }catch(e){ mostraToast(e.message||'Operazione non riuscita.'); return; }
+  try{
+    await runTransaction(ref(db,'investitori/'+destinatario+'/pub'), pub=>{
+      if(!pub) throw new Error('Destinatario non trovato.');
+      pub.portafoglio = pub.portafoglio || {};
+      const attuali = getQty(pub.portafoglio, aziendaId, serieId);
+      setQty(pub.portafoglio, aziendaId, serieId, attuali+qty);
+      return pub;
+    });
+  }catch(e){
+    // rollback: restituisce azioni e commissione al mittente
+    try{
+      await runTransaction(ref(db,'investitori/'+sessione.username+'/pub'), pub=>{
+        if(!pub) return pub;
+        pub.portafoglio = pub.portafoglio || {};
+        const attuali = getQty(pub.portafoglio, aziendaId, serieId);
+        setQty(pub.portafoglio, aziendaId, serieId, attuali+qty);
+        pub.saldo = (pub.saldo||0) + commissione;
+        return pub;
+      });
+    }catch(e2){}
+    mostraToast(e.message||'Trasferimento non riuscito.'); return;
+  }
+  await push(ref(db,'operazioni'), { tipo:'trasferimento-azioni', mittente:sessione.username, destinatario, aziendaId, serieId, quantita:qty, commissione, timestamp: Date.now() });
+  document.getElementById('trAzQty').value = '1';
+  aggiornaStimaTrasferimentoAzioni();
+  mostraToast('Azioni trasferite a '+destinatario+'.');
 }
 
 /* =====================================================================
@@ -1845,6 +2022,13 @@ function renderCtChart(){
 function renderConto(){
   if(sessione.tipo==='admin') return;
   const inv = INVESTITORI[sessione.username] || {saldo:0,portafoglio:{}};
+  const avatarInput = document.getElementById('ctAvatarUrl');
+  if(avatarInput && document.activeElement!==avatarInput) avatarInput.value = inv.avatarUrl||'';
+  const avatarPrev = document.getElementById('ctAvatarPreview');
+  if(avatarPrev){
+    if(inv.avatarUrl){ avatarPrev.src = inv.avatarUrl; avatarPrev.classList.remove('hidden'); avatarPrev.onerror = ()=>avatarPrev.classList.add('hidden'); }
+    else avatarPrev.classList.add('hidden');
+  }
   let valorePos = 0;
   const righe = [];
   Object.keys(AZIENDE).forEach(aid=>{
@@ -1871,6 +2055,29 @@ function renderConto(){
   renderCtChart();
 }
 
+window.utenteSalvaAvatar = async function(){
+  if(!sessione || sessione.tipo!=='investitore') return;
+  const url = document.getElementById('ctAvatarUrl').value.trim();
+  try{
+    await update(ref(db,'investitori/'+sessione.username+'/pub'), { avatarUrl: url||null });
+    mostraToast('Immagine profilo aggiornata.');
+  }catch(e){ mostraToast(e.message||'Operazione non riuscita.'); }
+}
+
+window.utenteCambiaPassword = async function(){
+  if(!sessione || sessione.tipo!=='investitore') return;
+  const nuova = document.getElementById('ctNuovaPass').value;
+  const conferma = document.getElementById('ctNuovaPass2').value;
+  if(!nuova || nuova.length<4){ mostraToast('La password deve avere almeno 4 caratteri.'); return; }
+  if(nuova !== conferma){ mostraToast('Le due password non coincidono.'); return; }
+  try{
+    const hash = await sha256(nuova);
+    await set(ref(db,'investitori/'+sessione.username+'/auth/passHash'), hash);
+    document.getElementById('ctNuovaPass').value=''; document.getElementById('ctNuovaPass2').value='';
+    mostraToast('Password aggiornata.');
+  }catch(e){ mostraToast(e.message||'Operazione non riuscita.'); }
+}
+
 /* =====================================================================
    RENDER: CLASSIFICA
    ===================================================================== */
@@ -1887,10 +2094,16 @@ function patrimonioDi(username){
   return val;
 }
 function renderClassifica(){
-  const lista = Object.keys(INVESTITORI).map(u=>({u, tot:patrimonioDi(u)})).sort((a,b)=>b.tot-a.tot);
-  document.getElementById('classificaBody').innerHTML = lista.length ? lista.map((r,i)=>
-    `<tr class="clickable" onclick="dettaglioInvestitore('${r.u}')"><td class="rankNum">${i+1}</td><td>${r.u}</td><td style="text-align:right;">${fmt(r.tot)}</td></tr>`
-  ).join('') : '<tr><td colspan="3" class="muted">Nessun investitore ancora.</td></tr>';
+  const campo = document.getElementById('classificaSearch');
+  const q = campo ? campo.value.trim().toLowerCase() : '';
+  const listaCompleta = investitoriAttivi().map(u=>({u, tot:patrimonioDi(u)})).sort((a,b)=>b.tot-a.tot);
+  const lista = q ? listaCompleta.filter(r=>r.u.toLowerCase().includes(q)) : listaCompleta;
+  if(!listaCompleta.length){ document.getElementById('classificaBody').innerHTML = '<tr><td colspan="3" class="muted">Nessun investitore ancora.</td></tr>'; return; }
+  if(!lista.length){ document.getElementById('classificaBody').innerHTML = '<tr><td colspan="3" class="muted">Nessun investitore corrisponde alla ricerca.</td></tr>'; return; }
+  document.getElementById('classificaBody').innerHTML = lista.map(r=>{
+    const rank = listaCompleta.indexOf(r)+1;
+    return `<tr class="clickable" onclick="dettaglioInvestitore('${r.u}')"><td class="rankNum">${rank}</td><td>${avatarImg(r.u)}${r.u}</td><td style="text-align:right;">${fmt(r.tot)}</td></tr>`;
+  }).join('');
 }
 window.dettaglioInvestitore = function(u){
   const inv = INVESTITORI[u] || {saldo:0,portafoglio:{}};
@@ -1907,10 +2120,20 @@ window.dettaglioInvestitore = function(u){
       }
     });
   });
+  const offerteAttive = OFFERTE.filter(o=>o.venditore===u && o.stato==='aperta').sort((a,b)=>(b.creata||0)-(a.creata||0));
+  const offerteHtml = offerteAttive.length
+    ? offerteAttive.map(o=>`<div class="trashItem"><div><b>${o.quantita}</b> × ${labelAzienda(o)}<div class="meta">Prezzo richiesto: ${fmt(o.prezzoTotale)} (${fmt(o.prezzoTotale/o.quantita)}/azione)</div></div></div>`).join('')
+    : '<span class="muted">Nessuna offerta di vendita attiva.</span>';
+  const avatarHtml = inv.avatarUrl ? `<img src="${inv.avatarUrl}" class="avatar-profile" style="margin-bottom:10px;" alt="" onerror="this.style.display='none'">` : '';
   apriModal(`Profilo di ${u}`, `
+    ${avatarHtml}
     <p>Liquidità: <b>${fmt(inv.saldo||0)}</b></p>
     <p>Patrimonio totale: <b>${fmt(patrimonioDi(u))}</b></p>
     <table><thead><tr><th>Azienda</th><th>Quantità</th><th>Valore</th></tr></thead><tbody>${righe.join('') || '<tr><td colspan="3" class="muted">Nessuna posizione.</td></tr>'}</tbody></table>
+    <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">
+      <b style="font-size:12.5px;">Offerte di vendita attive sulla bacheca P2P</b>
+      <div style="margin-top:8px;">${offerteHtml}</div>
+    </div>
   `);
 }
 
@@ -1957,8 +2180,9 @@ function popolaSelectAziende(){
   const selInv = document.getElementById('azInvestitore');
   if(selInv){
     const curInv = selInv.value;
-    selInv.innerHTML = Object.keys(INVESTITORI).map(u=>`<option value="${u}">${u}</option>`).join('');
-    if(curInv && INVESTITORI[curInv]) selInv.value = curInv;
+    const attivi = investitoriAttivi();
+    selInv.innerHTML = attivi.map(u=>`<option value="${u}">${u}</option>`).join('');
+    if(curInv && attivi.includes(curInv)) selInv.value = curInv;
   }
 }
 window.popolaSerieSelect = function(serieSelId, aziendaSelId){
@@ -2191,6 +2415,119 @@ function renderArchivio(){
 }
 
 /* =====================================================================
+   GESTIONE INVESTITORI: cambio immagine profilo, archiviazione ed
+   eliminazione (soft-delete con cestino), sullo stesso modello già usato
+   per le aziende. Un investitore archiviato o eliminato non può più fare
+   login né operare, ma i suoi dati restano recuperabili finché l'admin
+   non lo ripristina (o lo elimina definitivamente dal cestino/archivio).
+   ===================================================================== */
+window.adminCambiaImmagineInvestitore = function(username){
+  const inv = INVESTITORI[username] || {};
+  apriModal('Cambia immagine di '+username, `
+    <label>URL immagine (facoltativo, es. link imgur/drive)</label>
+    <input type="text" id="mAvatarUrl" value="${inv.avatarUrl||''}" placeholder="https://i.imgur.com/xxxx.png">
+    <button class="btn-amber" style="width:100%;margin-top:14px;" onclick="confermaCambiaImmagineInvestitore('${username}')">Salva</button>
+  `);
+}
+window.confermaCambiaImmagineInvestitore = async function(username){
+  const url = document.getElementById('mAvatarUrl').value.trim();
+  try{
+    await update(ref(db,'investitori/'+username+'/pub'), { avatarUrl: url||null });
+    chiudiModal(); mostraToast('Immagine di '+username+' aggiornata.');
+  }catch(e){ mostraToast(e.message||'Operazione non riuscita.'); }
+}
+
+window.adminChiediArchiviaInvestitore = function(username){
+  apriModal('Archiviare '+username+'?', `
+    <p>L'investitore sarà bloccato: non potrà più accedere né operare. Resterà nell'<b>archivio</b> senza limiti di tempo, finché non lo ripristini o non lo elimini definitivamente.</p>
+    <p>Saldo e azioni possedute non vengono toccati: restano congelati fino al ripristino.</p>
+    <div class="row2" style="margin-top:14px;">
+      <button class="btn-ghost" onclick="chiudiModal()">Annulla</button>
+      <button class="btn-amber" onclick="adminArchiviaInvestitore('${username}')">Conferma archiviazione</button>
+    </div>
+  `);
+}
+window.adminArchiviaInvestitore = async function(username){
+  await update(ref(db,'investitori/'+username+'/pub'), { archiviato:true, archiviatoTimestamp: Date.now() });
+  await push(ref(db,'operazioni'), { tipo:'admin-archivia-investitore', investitore:username, timestamp: Date.now() });
+  chiudiModal(); mostraToast(username+' spostato nell\'archivio.');
+}
+window.adminRipristinaInvestitoreArchivio = async function(username){
+  await update(ref(db,'investitori/'+username+'/pub'), { archiviato:false, archiviatoTimestamp:null });
+  await push(ref(db,'operazioni'), { tipo:'admin-ripristina-archivio-investitore', investitore:username, timestamp: Date.now() });
+  mostraToast(username+' ripristinato dall\'archivio.');
+}
+function renderArchivioInvestitori(){
+  const el = document.getElementById('adminArchivioInvestitori');
+  if(!el) return;
+  const archiviati = Object.keys(INVESTITORI).filter(u=>INVESTITORI[u].archiviato);
+  if(!archiviati.length){ el.innerHTML = '<span class="muted">Nessun investitore archiviato.</span>'; return; }
+  el.innerHTML = archiviati.map(u=>{
+    const inv = INVESTITORI[u];
+    const data = inv.archiviatoTimestamp ? new Date(inv.archiviatoTimestamp).toLocaleDateString('it-IT') : '—';
+    return `<div class="trashItem">
+      <div>${avatarImg(u)}<b>${u}</b><div class="meta">Archiviato il ${data} · patrimonio congelato a ${fmt(patrimonioDi(u))}</div></div>
+      <div>
+        <button class="btn-ghost" onclick="adminCambiaImmagineInvestitore('${u}')">🖼 Immagine</button>
+        <button class="btn-green" onclick="adminRipristinaInvestitoreArchivio('${u}')">Ripristina</button>
+        <button class="btn-red" onclick="adminChiediEliminaInvestitoreDefinitiva('${u}')">Elimina per sempre</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.adminChiediEliminaInvestitore = function(username){
+  apriModal('Eliminare '+username+'?', `
+    <p>L'investitore sarà bloccato e spostato nel <b>cestino</b> per ${Math.round(FINESTRA_RIPRISTINO_MS/86400000)} giorni: potrai ripristinarlo da lì se cambi idea.</p>
+    <div class="row2" style="margin-top:14px;">
+      <button class="btn-ghost" onclick="chiudiModal()">Annulla</button>
+      <button class="btn-red" onclick="adminEliminaInvestitore('${username}')">Conferma eliminazione</button>
+    </div>
+  `);
+}
+window.adminEliminaInvestitore = async function(username){
+  await update(ref(db,'investitori/'+username+'/pub'), { eliminato:true, eliminatoTimestamp: Date.now() });
+  await push(ref(db,'operazioni'), { tipo:'admin-elimina-investitore', investitore:username, timestamp: Date.now() });
+  chiudiModal(); mostraToast(username+' spostato nel cestino.');
+}
+window.adminRipristinaInvestitoreCestino = async function(username){
+  await update(ref(db,'investitori/'+username+'/pub'), { eliminato:false, eliminatoTimestamp:null });
+  await push(ref(db,'operazioni'), { tipo:'admin-ripristina-investitore', investitore:username, timestamp: Date.now() });
+  mostraToast(username+' ripristinato.');
+}
+window.adminChiediEliminaInvestitoreDefinitiva = function(username){
+  apriModal('Eliminare definitivamente '+username+'?', `
+    <p style="color:var(--red);"><b>Attenzione:</b> questa azione è irreversibile. L'account di <b>${username}</b> (login, saldo, portafoglio, storico collegato) andrà perso per sempre e il nome tornerà libero per una nuova registrazione.</p>
+    <div class="row2" style="margin-top:14px;">
+      <button class="btn-ghost" onclick="chiudiModal()">Annulla</button>
+      <button class="btn-red" onclick="adminEliminaInvestitoreDefinitiva('${username}')">Elimina per sempre</button>
+    </div>
+  `);
+}
+window.adminEliminaInvestitoreDefinitiva = async function(username){
+  await set(ref(db,'investitori/'+username), null);
+  chiudiModal(); mostraToast(username+' eliminato definitivamente.');
+}
+function renderCestinoInvestitori(){
+  const el = document.getElementById('adminCestinoInvestitori');
+  if(!el) return;
+  const eliminati = Object.keys(INVESTITORI).filter(u=>INVESTITORI[u].eliminato);
+  if(!eliminati.length){ el.innerHTML = '<span class="muted">Nessun investitore eliminato.</span>'; return; }
+  el.innerHTML = eliminati.map(u=>{
+    const inv = INVESTITORI[u];
+    const scaduto = inv.eliminatoTimestamp && (Date.now()-inv.eliminatoTimestamp)>FINESTRA_RIPRISTINO_MS;
+    const giorniRimasti = inv.eliminatoTimestamp ? Math.max(0, Math.ceil((FINESTRA_RIPRISTINO_MS-(Date.now()-inv.eliminatoTimestamp))/86400000)) : 0;
+    return `<div class="trashItem">
+      <div>${avatarImg(u)}<b>${u}</b><div class="meta">${scaduto?'Finestra di ripristino scaduta':('Ripristinabile ancora per '+giorniRimasti+' giorni')}</div></div>
+      <div>
+        ${scaduto?'':'<button class="btn-green" onclick="adminRipristinaInvestitoreCestino(\''+u+'\')">Ripristina</button> '}
+        <button class="btn-red" onclick="adminChiediEliminaInvestitoreDefinitiva('${u}')">Elimina per sempre</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* =====================================================================
    SOSPENSIONE GLOBALE DELLA BORSA
    ===================================================================== */
 window.adminSospendiBorsa = async function(){
@@ -2362,16 +2699,23 @@ function renderAdmin(){
     document.getElementById('cfgVelocita').value = CONFIG.velocitaFactor!=null ? CONFIG.velocitaFactor : 1;
   }
   const el = document.getElementById('adminInvestitori');
-  const utenti = Object.keys(INVESTITORI);
-  if(!utenti.length){ el.innerHTML = '<span class="muted">Nessun investitore registrato ancora.</span>'; return; }
-  el.innerHTML = utenti.map(u=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
-      <span>${u} — ${fmt(INVESTITORI[u].saldo||0)}</span>
-      <span>
-        <button class="btn-ghost" onclick="adminModificaSaldo('${u}')">Modifica saldo</button>
-        <button class="btn-ghost" onclick="adminOperaPerConto('${u}')">Opera per lui</button>
-      </span>
-    </div>`).join('');
+  const utenti = investitoriAttivi();
+  if(!utenti.length){ el.innerHTML = '<span class="muted">Nessun investitore attivo.</span>'; }
+  else{
+    el.innerHTML = utenti.map(u=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;">
+        <span>${avatarImg(u)}${u} — ${fmt(INVESTITORI[u].saldo||0)}</span>
+        <span>
+          <button class="btn-ghost" onclick="adminModificaSaldo('${u}')">Modifica saldo</button>
+          <button class="btn-ghost" onclick="adminOperaPerConto('${u}')">Opera per lui</button>
+          <button class="btn-ghost" onclick="adminCambiaImmagineInvestitore('${u}')">🖼 Immagine</button>
+          <button class="btn-ghost" onclick="adminChiediArchiviaInvestitore('${u}')">📦 Archivia</button>
+          <button class="btn-red" onclick="adminChiediEliminaInvestitore('${u}')">🗑 Elimina</button>
+        </span>
+      </div>`).join('');
+  }
+  renderArchivioInvestitori();
+  renderCestinoInvestitori();
 }
 
 window.adminModificaSaldo = function(username){
