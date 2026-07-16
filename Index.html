@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -142,6 +142,34 @@
   /* cestino aziende eliminate */
   .trashItem{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap;}
   .trashItem .meta{font-size:11px;color:#a89b9d;}
+
+  /* ======================================================================
+     RESPONSIVE MOBILE
+     Il problema principale era la griglia della tab Mercato con una colonna
+     fissa di 280px: su schermi stretti non ci stava, e il browser mobile
+     "zoomava fuori" tutta la pagina per farcela stare (l'effetto che si
+     vedeva senza la modalità desktop forzata). Qui sotto la trasformiamo
+     in colonna singola e sistemiamo spaziature/dimensioni per schermi piccoli.
+     ====================================================================== */
+  @media (max-width:720px){
+    #tab-mercato > .row2{ grid-template-columns:1fr !important; }
+    header.top{padding:12px 14px;}
+    header.top .brand{font-size:16px;}
+    nav.tabs{padding:8px 12px;gap:3px;}
+    nav.tabs button{padding:8px 10px;font-size:11.5px;}
+    main{padding:14px 10px 50px;}
+    .panel{padding:13px;}
+    .quote-price{font-size:24px;}
+    .loginBox{padding:20px;}
+    table{font-size:11.5px;}
+    th,td{padding:7px 5px;}
+    .modalBox{padding:16px;max-width:100%;}
+    #pieChart{width:140px;height:140px;max-width:140px;}
+    .legend{min-width:140px;}
+  }
+  @media (max-width:420px){
+    .row2{grid-template-columns:1fr;}
+  }
 </style>
 </head>
 <body>
@@ -2105,6 +2133,7 @@ function renderClassifica(){
     return `<tr class="clickable" onclick="dettaglioInvestitore('${r.u}')"><td class="rankNum">${rank}</td><td>${avatarImg(r.u)}${r.u}</td><td style="text-align:right;">${fmt(r.tot)}</td></tr>`;
   }).join('');
 }
+window.renderClassifica = renderClassifica;
 window.dettaglioInvestitore = function(u){
   const inv = INVESTITORI[u] || {saldo:0,portafoglio:{}};
   const righe = [];
